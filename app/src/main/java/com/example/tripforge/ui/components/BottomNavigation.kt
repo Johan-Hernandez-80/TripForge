@@ -41,6 +41,9 @@ fun BottomNav(
             onSelect("map")
         }
 
+        NavItem("Profile", Icons.Default.AccountCircle, selected.lowercase() == "profile", Modifier.weight(1f)) {
+            onSelect("profile")
+        }
     }
 }
 

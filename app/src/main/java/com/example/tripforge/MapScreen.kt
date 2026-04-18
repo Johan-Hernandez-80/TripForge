@@ -19,10 +19,10 @@ data class Marker(
 )
 
 @Composable
-fun MapScreen() {
-
-    var selectedTab by remember { mutableStateOf("map") }
-
+fun MapScreen(
+    selectedTab: String? = null,
+    onSelectTab: ((String) -> Unit)? = null
+) {
     val markers = listOf(
         Marker(1, "trip", 0.2f, 0.15f),
         Marker(2, "trip", 0.35f, 0.35f),
@@ -33,14 +33,21 @@ fun MapScreen() {
 
     Scaffold(
         bottomBar = {
-            BottomNav(selected = selectedTab, onSelect = { selectedTab = it })
+            if (selectedTab != null && onSelectTab != null) {
+                Surface(
+                    tonalElevation = 0.dp,
+                    shadowElevation = 16.dp,
+                    color = MaterialTheme.colorScheme.surface
+                ) {
+                    BottomNav(selected = selectedTab, onSelect = onSelectTab)
+                }
+            }
         }
-    ) { padding ->
-
+    ) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
+                .padding(innerPadding)
                 .background(MaterialTheme.colorScheme.background)
         ) {
 

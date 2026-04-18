@@ -17,7 +17,22 @@ private val LightColorScheme = lightColorScheme(
     onBackground = TextPrimary,
     onSurface = TextPrimary,
     onSurfaceVariant = TextSecondary,
-    outline = GrayBorder
+    outline = GrayBorder,
+    error = ErrorRed
+)
+
+private val DarkColorScheme = darkColorScheme(
+    primary = Color(0xFF60A5FA),
+    secondary = Color(0xFF2DD4BF),
+    tertiary = Color(0xFFFB923C),
+    background = Color(0xFF0F172A),
+    surface = Color(0xFF1E293B),
+    onPrimary = Color.Black,
+    onBackground = Color(0xFFF1F5F9),
+    onSurface = Color(0xFFF1F5F9),
+    onSurfaceVariant = Color(0xFF94A3B8),
+    outline = Color(0xFF334155),
+    error = Color(0xFFF87171)
 )
 
 @Composable
@@ -25,7 +40,7 @@ fun TripForgeTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit
 ) {
-    val colorScheme = LightColorScheme // For now, we only have LightColorScheme defined
+    val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
 
     MaterialTheme(
         colorScheme = colorScheme,

@@ -1,6 +1,7 @@
 package com.example.tripforge
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -15,6 +16,8 @@ import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -37,11 +40,13 @@ fun BudgetScreen(
 ) {
     var showAddExpense by rememberSaveable { mutableStateOf(false) }
     var selectedCategory by rememberSaveable { mutableStateOf<BudgetCategory?>(null) }
+    var expenseDescription by rememberSaveable { mutableStateOf("") }
+    var expenseAmount by rememberSaveable { mutableStateOf("") }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF9FAFB))
+            .background(MaterialTheme.colorScheme.background)
     ) {
         Column(
             modifier = Modifier
@@ -51,7 +56,7 @@ fun BudgetScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color(0xFF2563EB))
+                    .background(MaterialTheme.colorScheme.primary)
                     .padding(horizontal = 24.dp, vertical = 28.dp)
             ) {
                 Column(verticalArrangement = Arrangement.spacedBy(18.dp)) {
@@ -62,49 +67,49 @@ fun BudgetScreen(
                     )
 
                     Column(horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
-                        Text("Total Spent", color = Color.White.copy(alpha = 0.8f), style = MaterialTheme.typography.bodySmall)
+                        Text("Total Spent", color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f), style = MaterialTheme.typography.bodySmall)
                         Spacer(modifier = Modifier.height(6.dp))
-                        Text("$1,200", color = Color.White, style = MaterialTheme.typography.headlineLarge)
+                        Text("$1,200", color = MaterialTheme.colorScheme.onPrimary, style = MaterialTheme.typography.headlineLarge)
                         Spacer(modifier = Modifier.height(4.dp))
-                        Text("of $3,500", color = Color.White.copy(alpha = 0.8f))
+                        Text("of $3,500", color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f))
                     }
 
                     ProgressBar(
                         progress = 0.34f,
-                        barColor = Color.White,
-                        trackColor = Color.White.copy(alpha = 0.25f)
+                        barColor = MaterialTheme.colorScheme.onPrimary,
+                        trackColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.25f)
                     )
 
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         Card(
                             modifier = Modifier.weight(1f),
-                            colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.12f)),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.12f)),
                             shape = RoundedCornerShape(18.dp)
                         ) {
                             Column(modifier = Modifier.padding(16.dp)) {
                                 Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-                                    Icon(Icons.Default.TrendingUp, contentDescription = null, tint = Color.White)
+                                    Icon(Icons.Default.TrendingUp, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary)
                                     Spacer(modifier = Modifier.width(8.dp))
-                                    Text("Spent", color = Color.White.copy(alpha = 0.8f), style = MaterialTheme.typography.bodySmall)
+                                    Text("Spent", color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f), style = MaterialTheme.typography.bodySmall)
                                 }
                                 Spacer(modifier = Modifier.height(10.dp))
-                                Text("$1,200", color = Color.White, style = MaterialTheme.typography.headlineSmall)
+                                Text("$1,200", color = MaterialTheme.colorScheme.onPrimary, style = MaterialTheme.typography.headlineSmall)
                             }
                         }
 
                         Card(
                             modifier = Modifier.weight(1f),
-                            colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.12f)),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.12f)),
                             shape = RoundedCornerShape(18.dp)
                         ) {
                             Column(modifier = Modifier.padding(16.dp)) {
                                 Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-                                    Icon(Icons.Default.TrendingDown, contentDescription = null, tint = Color.White)
+                                    Icon(Icons.Default.TrendingDown, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary)
                                     Spacer(modifier = Modifier.width(8.dp))
-                                    Text("Remaining", color = Color.White.copy(alpha = 0.8f), style = MaterialTheme.typography.bodySmall)
+                                    Text("Remaining", color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f), style = MaterialTheme.typography.bodySmall)
                                 }
                                 Spacer(modifier = Modifier.height(10.dp))
-                                Text("$2,300", color = Color.White, style = MaterialTheme.typography.headlineSmall)
+                                Text("$2,300", color = MaterialTheme.colorScheme.onPrimary, style = MaterialTheme.typography.headlineSmall)
                             }
                         }
                     }
@@ -115,7 +120,10 @@ fun BudgetScreen(
                 modifier = Modifier.padding(24.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Card(shape = RoundedCornerShape(20.dp)) {
+                Card(
+                    shape = RoundedCornerShape(20.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+                ) {
                     Column(modifier = Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
                         SectionHeader(title = "By Category")
 
@@ -129,24 +137,27 @@ fun BudgetScreen(
                                         Box(
                                             modifier = Modifier
                                                 .size(40.dp)
-                                                .background(Color(0xFFEFF6FF), RoundedCornerShape(12.dp)),
+                                                .background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(12.dp)),
                                             contentAlignment = androidx.compose.ui.Alignment.Center
                                         ) {
-                                            Icon(Icons.Default.Folder, contentDescription = null, tint = Color(0xFF2563EB))
+                                            Icon(Icons.Default.Folder, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                                         }
                                         Spacer(modifier = Modifier.width(12.dp))
-                                        Text(item.category.label, fontWeight = androidx.compose.ui.text.font.FontWeight.Medium, color = Color(0xFF111827))
+                                        Text(item.category.label, fontWeight = androidx.compose.ui.text.font.FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
                                     }
-                                    Text("$${item.amount}", fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold, color = Color(0xFF111827))
+                                    Text("$${item.amount}", fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
                                 }
 
-                                ProgressBar(progress = item.progress, barColor = Color(0xFF2563EB))
+                                ProgressBar(progress = item.progress, barColor = MaterialTheme.colorScheme.primary)
                             }
                         }
                     }
                 }
 
-                Card(shape = RoundedCornerShape(20.dp)) {
+                Card(
+                    shape = RoundedCornerShape(20.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+                ) {
                     Column(modifier = Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
                         SectionHeader(title = "Recent Expenses")
 
@@ -155,8 +166,8 @@ fun BudgetScreen(
                                 title = expense.description,
                                 amount = "$${expense.amount}",
                                 icon = Icons.Default.AttachMoney,
-                                tint = Color(0xFF2563EB),
-                                backgroundTint = Color(0xFFEFF6FF)
+                                tint = MaterialTheme.colorScheme.primary,
+                                backgroundTint = MaterialTheme.colorScheme.primaryContainer
                             )
                         }
                     }
@@ -168,12 +179,12 @@ fun BudgetScreen(
 
         FloatingActionButton(
             onClick = { showAddExpense = true },
-            containerColor = Color(0xFF2563EB),
+            containerColor = MaterialTheme.colorScheme.primary,
             modifier = Modifier
                 .align(androidx.compose.ui.Alignment.BottomEnd)
                 .padding(24.dp)
         ) {
-            Icon(Icons.Default.Add, contentDescription = "Add expense", tint = Color.White)
+            Icon(Icons.Default.Add, contentDescription = "Add expense", tint = MaterialTheme.colorScheme.onPrimary)
         }
 
         if (showAddExpense) {
@@ -181,12 +192,15 @@ fun BudgetScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(Color.Black.copy(alpha = 0.50f))
+                    .clickable { showAddExpense = false }
             ) {
                 Card(
                     modifier = Modifier
                         .align(androidx.compose.ui.Alignment.BottomCenter)
-                        .fillMaxWidth(),
-                    shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
+                        .fillMaxWidth()
+                        .clickable(enabled = false) { },
+                    shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
                 ) {
                     Column(
                         modifier = Modifier.padding(24.dp),
@@ -197,15 +211,15 @@ fun BudgetScreen(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
                         ) {
-                            Text("Add Expense", style = MaterialTheme.typography.headlineSmall)
+                            Text("Add Expense", style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.onSurface)
                             IconButton(onClick = { showAddExpense = false }) {
-                                Icon(Icons.Default.Close, contentDescription = "Close")
+                                Icon(Icons.Default.Close, contentDescription = "Close", tint = MaterialTheme.colorScheme.onSurface)
                             }
                         }
 
                         OutlinedTextField(
-                            value = "",
-                            onValueChange = { },
+                            value = expenseDescription,
+                            onValueChange = { expenseDescription = it },
                             modifier = Modifier.fillMaxWidth(),
                             label = { Text("Description") },
                             placeholder = { Text("e.g., Lunch at restaurant") },
@@ -213,8 +227,8 @@ fun BudgetScreen(
                         )
 
                         OutlinedTextField(
-                            value = "",
-                            onValueChange = { },
+                            value = expenseAmount,
+                            onValueChange = { expenseAmount = it },
                             modifier = Modifier.fillMaxWidth(),
                             label = { Text("Amount") },
                             placeholder = { Text("0.00") },
@@ -222,51 +236,68 @@ fun BudgetScreen(
                         )
 
                         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                            Text("Category", style = MaterialTheme.typography.bodyMedium)
+                            Text("Category", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
                             Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
-                                BudgetCategoryButton(
-                                    label = "Transport",
-                                    shortLabel = "TR",
-                                    selected = selectedCategory == BudgetCategory.TRANSPORT,
-                                    onClick = { selectedCategory = BudgetCategory.TRANSPORT }
-                                )
-                                BudgetCategoryButton(
-                                    label = "Accommodation",
-                                    shortLabel = "AC",
-                                    selected = selectedCategory == BudgetCategory.ACCOMMODATION,
-                                    onClick = { selectedCategory = BudgetCategory.ACCOMMODATION }
-                                )
-                                BudgetCategoryButton(
-                                    label = "Food",
-                                    shortLabel = "FD",
-                                    selected = selectedCategory == BudgetCategory.FOOD,
-                                    onClick = { selectedCategory = BudgetCategory.FOOD }
-                                )
+                                Box(modifier = Modifier.weight(1f)) {
+                                    BudgetCategoryButton(
+                                        label = "Transport",
+                                        shortLabel = "TR",
+                                        selected = selectedCategory == BudgetCategory.TRANSPORT,
+                                        onClick = { selectedCategory = BudgetCategory.TRANSPORT }
+                                    )
+                                }
+                                Box(modifier = Modifier.weight(1f)) {
+                                    BudgetCategoryButton(
+                                        label = "Accommodation",
+                                        shortLabel = "AC",
+                                        selected = selectedCategory == BudgetCategory.ACCOMMODATION,
+                                        onClick = { selectedCategory = BudgetCategory.ACCOMMODATION }
+                                    )
+                                }
+                                Box(modifier = Modifier.weight(1f)) {
+                                    BudgetCategoryButton(
+                                        label = "Food",
+                                        shortLabel = "FD",
+                                        selected = selectedCategory == BudgetCategory.FOOD,
+                                        onClick = { selectedCategory = BudgetCategory.FOOD }
+                                    )
+                                }
                             }
 
                             Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
-                                BudgetCategoryButton(
-                                    label = "Activities",
-                                    shortLabel = "AT",
-                                    selected = selectedCategory == BudgetCategory.ACTIVITIES,
-                                    onClick = { selectedCategory = BudgetCategory.ACTIVITIES }
-                                )
-                                BudgetCategoryButton(
-                                    label = "Other",
-                                    shortLabel = "OT",
-                                    selected = selectedCategory == BudgetCategory.OTHER,
-                                    onClick = { selectedCategory = BudgetCategory.OTHER }
-                                )
+                                Box(modifier = Modifier.weight(1f)) {
+                                    BudgetCategoryButton(
+                                        label = "Activities",
+                                        shortLabel = "AT",
+                                        selected = selectedCategory == BudgetCategory.ACTIVITIES,
+                                        onClick = { selectedCategory = BudgetCategory.ACTIVITIES }
+                                    )
+                                }
+                                Box(modifier = Modifier.weight(1f)) {
+                                    BudgetCategoryButton(
+                                        label = "Other",
+                                        shortLabel = "OT",
+                                        selected = selectedCategory == BudgetCategory.OTHER,
+                                        onClick = { selectedCategory = BudgetCategory.OTHER }
+                                    )
+                                }
+                                Spacer(modifier = Modifier.weight(1f))
                             }
                         }
 
                         Button(
-                            onClick = { /* TODO placeholder */ },
+                            onClick = { 
+                                // TODO: Save expense
+                                showAddExpense = false
+                                expenseDescription = ""
+                                expenseAmount = ""
+                                selectedCategory = null
+                            },
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(16.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2563EB))
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                         ) {
-                            Text("Add Expense", color = Color.White)
+                            Text("Add Expense", color = MaterialTheme.colorScheme.onPrimary)
                         }
                     }
                 }

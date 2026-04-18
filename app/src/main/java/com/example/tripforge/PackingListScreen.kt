@@ -6,7 +6,10 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
@@ -15,6 +18,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.Alignment
 import com.example.tripforge.ui.components.BottomNav
 
+@Immutable
 data class PackingItem(
     val id: Int,
     val name: String,
@@ -22,10 +26,9 @@ data class PackingItem(
     val checked: Boolean
 )
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PackingListScreen() {
-
-    var selectedTab by remember { mutableStateOf("trips") }
+fun PackingListScreen(onBack: () -> Unit) {
 
     var items by remember {
         mutableStateOf(
@@ -68,15 +71,27 @@ fun PackingListScreen() {
     val totalChecked = items.count { it.checked }
 
     Scaffold(
-        bottomBar = {
-            BottomNav(selected = selectedTab, onSelect = { selectedTab = it })
+        topBar = {
+            TopAppBar(
+                title = { Text("Packing List") },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onSurface
+                )
+            )
         },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { showDialog = true },
                 containerColor = MaterialTheme.colorScheme.primary
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Add item", tint = Color.White)
+                Icon(Icons.Default.Add, contentDescription = "Add item", tint = MaterialTheme.colorScheme.onPrimary)
             }
         }
     ) { padding ->
@@ -90,41 +105,40 @@ fun PackingListScreen() {
 
             Spacer(Modifier.height(16.dp))
 
-            Text(
-                "Packing List",
-                style = MaterialTheme.typography.headlineSmall,
-                modifier = Modifier.padding(horizontal = 24.dp)
-            )
-
-            Spacer(Modifier.height(16.dp))
-
             LinearProgressIndicator(
-                progress = totalChecked.toFloat() / items.size,
+                progress = { if (items.isEmpty()) 0f else totalChecked.toFloat() / items.size },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 24.dp)
+                    .padding(horizontal = 24.dp),
+                color = MaterialTheme.colorScheme.primary,
+                trackColor = MaterialTheme.colorScheme.outlineVariant
             )
 
             Spacer(Modifier.height(8.dp))
 
             Text(
                 "$totalChecked/${items.size} packed",
-                modifier = Modifier.padding(horizontal = 24.dp)
+                modifier = Modifier.padding(horizontal = 24.dp),
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             Spacer(Modifier.height(16.dp))
 
-            CategorySection(
-                "Documents",
-                items.filter { it.category == "Documents" },
-                ::toggle
-            )
+            if (items.any { it.category == "Documents" }) {
+                CategorySection(
+                    "Documents",
+                    items.filter { it.category == "Documents" },
+                    ::toggle
+                )
+            }
 
-            CategorySection(
-                "Clothes",
-                items.filter { it.category == "Clothes" },
-                ::toggle
-            )
+            if (items.any { it.category == "Clothes" }) {
+                CategorySection(
+                    "Clothes",
+                    items.filter { it.category == "Clothes" },
+                    ::toggle
+                )
+            }
         }
     }
 
@@ -187,14 +201,15 @@ fun CategorySection(
         Text(
             title,
             modifier = Modifier.padding(16.dp),
-            style = MaterialTheme.typography.titleMedium
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurface
         )
 
-        items.forEach {
+        items.forEach { item ->
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { toggle(it.id) }
+                    .clickable { toggle(item.id) }
                     .padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -203,17 +218,32 @@ fun CategorySection(
                     modifier = Modifier
                         .size(20.dp)
                         .background(
-                            if (it.checked)
+                            if (item.checked)
                                 MaterialTheme.colorScheme.primary
                             else
                                 Color.Transparent,
                             CircleShape
                         )
+                        .border(
+                            width = 1.dp,
+                            color = if (item.checked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
+                            shape = CircleShape
+                        )
                 )
 
                 Spacer(Modifier.width(12.dp))
 
-                Text(it.name)
+                Text(item.name, color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.weight(1f))
+                
+                Row {
+                    IconButton(onClick = { /* TODO */ }, modifier = Modifier.size(24.dp)) {
+                        Icon(Icons.Default.Edit, contentDescription = "Edit", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
+                    }
+                    Spacer(Modifier.width(8.dp))
+                    IconButton(onClick = { /* TODO */ }, modifier = Modifier.size(24.dp)) {
+                        Icon(Icons.Default.Delete, contentDescription = "Delete", tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(18.dp))
+                    }
+                }
             }
         }
     }

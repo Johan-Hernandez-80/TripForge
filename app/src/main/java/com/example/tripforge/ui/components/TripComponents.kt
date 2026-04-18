@@ -34,9 +34,9 @@ fun ScreenHeader(
                 onClick = onBack,
                 modifier = Modifier
                     .size(40.dp)
-                    .background(Color(0xFFF3F4F6), RoundedCornerShape(50))
+                    .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(50))
             ) {
-                Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color(0xFF374151))
+                Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.onSurface)
             }
             Spacer(modifier = Modifier.width(12.dp))
         }
@@ -46,10 +46,10 @@ fun ScreenHeader(
                 title,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.SemiBold,
-                color = Color(0xFF111827)
+                color = MaterialTheme.colorScheme.onBackground
             )
             if (!subtitle.isNullOrBlank()) {
-                Text(subtitle, fontSize = 13.sp, color = Color(0xFF6B7280))
+                Text(subtitle, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
@@ -66,10 +66,10 @@ fun SectionHeader(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(title, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Color(0xFF111827))
+        Text(title, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onBackground)
         if (actionText != null && onAction != null) {
             TextButton(onClick = onAction, contentPadding = PaddingValues(0.dp)) {
-                Text(actionText)
+                Text(actionText, color = MaterialTheme.colorScheme.primary)
             }
         }
     }
@@ -78,8 +78,8 @@ fun SectionHeader(
 @Composable
 fun ProgressBar(
     progress: Float,
-    barColor: Color,
-    trackColor: Color = Color(0xFFE5E7EB),
+    barColor: Color = MaterialTheme.colorScheme.primary,
+    trackColor: Color = MaterialTheme.colorScheme.outlineVariant,
     modifier: Modifier = Modifier
 ) {
     val safeProgress = progress.coerceIn(0f, 1f)
@@ -105,13 +105,15 @@ fun MetricCard(
     value: String,
     subtitle: String? = null,
     icon: ImageVector,
-    iconTint: Color,
-    backgroundTint: Color,
-    modifier: Modifier = Modifier
+    iconTint: Color = MaterialTheme.colorScheme.primary,
+    backgroundTint: Color = MaterialTheme.colorScheme.primaryContainer,
+    modifier: Modifier = Modifier,
+    onClick: (() -> Unit)? = null
 ) {
     Card(
-        modifier = modifier,
-        shape = RoundedCornerShape(18.dp)
+        modifier = if (onClick != null) modifier.clickable { onClick() } else modifier,
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -124,7 +126,7 @@ fun MetricCard(
                     Icon(icon, contentDescription = null, tint = iconTint)
                 }
                 Spacer(modifier = Modifier.width(12.dp))
-                Text(title, fontSize = 13.sp, color = Color(0xFF6B7280))
+                Text(title, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
 
             Spacer(modifier = Modifier.height(14.dp))
@@ -132,11 +134,11 @@ fun MetricCard(
                 value,
                 fontSize = 24.sp,
                 fontWeight = FontWeight.SemiBold,
-                color = Color(0xFF111827)
+                color = MaterialTheme.colorScheme.onSurface
             )
             if (!subtitle.isNullOrBlank()) {
                 Spacer(modifier = Modifier.height(4.dp))
-                Text(subtitle, fontSize = 12.sp, color = Color(0xFF6B7280))
+                Text(subtitle, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
@@ -148,15 +150,16 @@ fun TripTabChip(
     selected: Boolean,
     onClick: () -> Unit
 ) {
-    val background = if (selected) Color(0xFF2563EB) else Color.White
-    val contentColor = if (selected) Color.White else Color(0xFF4B5563)
+    val background = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface
+    val contentColor = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
 
     Button(
         onClick = onClick,
         colors = ButtonDefaults.buttonColors(containerColor = background),
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 10.dp),
         shape = RoundedCornerShape(50),
-        elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp)
+        elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp),
+        border = if (!selected) BorderStroke(1.dp, MaterialTheme.colorScheme.outline) else null
     ) {
         Text(text, color = contentColor, fontSize = 13.sp)
     }
@@ -168,7 +171,7 @@ fun TripPreviewCard(
     location: String,
     dateRange: String,
     statusText: String,
-    badgeColor: Color,
+    badgeColor: Color = MaterialTheme.colorScheme.tertiary,
     budgetText: String? = null,
     budgetSpentText: String? = null,
     progress: Float? = null,
@@ -177,14 +180,15 @@ fun TripPreviewCard(
 ) {
     Card(
         modifier = modifier.clickable { onClick() },
-        shape = RoundedCornerShape(22.dp)
+        shape = RoundedCornerShape(22.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Column {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(180.dp)
-                    .background(Color(0xFF1D4ED8))
+                    .background(MaterialTheme.colorScheme.primary)
             ) {
                 Box(
                     modifier = Modifier
@@ -193,7 +197,7 @@ fun TripPreviewCard(
                         .background(badgeColor, RoundedCornerShape(50))
                         .padding(horizontal = 12.dp, vertical = 5.dp)
                 ) {
-                    Text(statusText, color = Color.White, fontSize = 11.sp)
+                    Text(statusText, color = MaterialTheme.colorScheme.onTertiary, fontSize = 11.sp)
                 }
 
                 Column(
@@ -201,10 +205,10 @@ fun TripPreviewCard(
                         .align(Alignment.BottomStart)
                         .padding(16.dp)
                 ) {
-                    Text(dateRange, color = Color.White.copy(alpha = 0.85f), fontSize = 12.sp)
+                    Text(dateRange, color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.85f), fontSize = 12.sp)
                     Text(
                         title,
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onPrimary,
                         fontSize = 22.sp,
                         fontWeight = FontWeight.SemiBold
                     )
@@ -214,24 +218,35 @@ fun TripPreviewCard(
             Column(modifier = Modifier.padding(16.dp)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(location, fontSize = 13.sp, color = Color(0xFF4B5563))
+                    Text(location, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     if (budgetText != null) {
                         Text(
                             budgetText,
                             fontSize = 13.sp,
                             fontWeight = FontWeight.SemiBold,
-                            color = Color(0xFF111827)
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 }
 
                 if (progress != null && budgetSpentText != null) {
                     Spacer(modifier = Modifier.height(10.dp))
-                    ProgressBar(progress = progress, barColor = Color(0xFF14B8A6))
+                    ProgressBar(progress = progress, barColor = MaterialTheme.colorScheme.secondary)
                     Spacer(modifier = Modifier.height(6.dp))
-                    Text(budgetSpentText, fontSize = 12.sp, color = Color(0xFF6B7280))
+                    Text(budgetSpentText, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                    IconButton(onClick = { /* TODO: Edit */ }) {
+                        Icon(Icons.Default.Edit, contentDescription = "Edit", tint = MaterialTheme.colorScheme.primary)
+                    }
+                    IconButton(onClick = { /* TODO: Delete */ }) {
+                        Icon(Icons.Default.Delete, contentDescription = "Delete", tint = MaterialTheme.colorScheme.error)
+                    }
                 }
             }
         }
@@ -249,27 +264,27 @@ fun TripBulletItem(
         Box(
             modifier = Modifier
                 .size(32.dp)
-                .background(Color(0xFFF3F4F6), RoundedCornerShape(50)),
+                .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(50)),
             contentAlignment = Alignment.Center
         ) {
             Box(
                 modifier = Modifier
                     .size(10.dp)
-                    .background(Color(0xFF9CA3AF), RoundedCornerShape(50))
+                    .background(MaterialTheme.colorScheme.outline, RoundedCornerShape(50))
             )
         }
 
         Spacer(modifier = Modifier.width(12.dp))
 
         Column(modifier = Modifier.weight(1f)) {
-            Text(title, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = Color(0xFF111827))
-            Text(location, fontSize = 13.sp, color = Color(0xFF6B7280))
+            Text(title, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
+            Text(location, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
 
         Column(horizontalAlignment = Alignment.End) {
-            Text(time, fontSize = 13.sp, fontWeight = FontWeight.Medium, color = Color(0xFF2563EB))
+            Text(time, fontSize = 13.sp, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.primary)
             if (!dateLabel.isNullOrBlank()) {
-                Text(dateLabel, fontSize = 11.sp, color = Color(0xFF6B7280))
+                Text(dateLabel, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
@@ -289,24 +304,24 @@ fun TripDaySection(
             Box(
                 modifier = Modifier
                     .size(42.dp)
-                    .background(Color(0xFF2563EB), RoundedCornerShape(50)),
+                    .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(50)),
                 contentAlignment = Alignment.Center
             ) {
-                Text(day.toString(), color = Color.White, fontWeight = FontWeight.SemiBold)
+                Text(day.toString(), color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.SemiBold)
             }
             Spacer(modifier = Modifier.width(12.dp))
             Text(
                 dateLabel,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.SemiBold,
-                color = Color(0xFF111827)
+                color = MaterialTheme.colorScheme.onBackground
             )
         }
 
         Column(
             modifier = Modifier
                 .padding(start = 21.dp)
-                .border(2.dp, Color(0xFFE5E7EB), RoundedCornerShape(0.dp))
+                .border(2.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(0.dp))
                 .padding(start = 18.dp)
         ) {
             activities.forEachIndexed { index, activity ->
@@ -321,44 +336,66 @@ fun TripDaySection(
 
 @Composable
 fun TripActivityCard(activity: ActivityItem) {
-    Card(shape = RoundedCornerShape(18.dp)) {
+    Card(
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
                     text = activity.title,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Medium,
-                    color = Color(0xFF111827),
+                    color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.weight(1f)
                 )
-                if (activity.time.isNotBlank()) {
-                    Text(
-                        activity.time,
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = Color(0xFF2563EB)
+                
+                Row {
+                    if (activity.time.isNotBlank()) {
+                        Text(
+                            activity.time,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                    Spacer(Modifier.width(8.dp))
+                    Icon(
+                        Icons.Default.Edit,
+                        contentDescription = "Edit",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(18.dp).clickable { /* TODO */ }
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Icon(
+                        Icons.Default.Delete,
+                        contentDescription = "Delete",
+                        tint = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.size(18.dp).clickable { /* TODO */ }
                     )
                 }
             }
 
             Spacer(modifier = Modifier.height(6.dp))
-            Text("Location: ${activity.location}", fontSize = 13.sp, color = Color(0xFF6B7280))
+            Text("Location: ${activity.location}", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
 
             if (activity.description.isNotBlank()) {
                 Spacer(modifier = Modifier.height(6.dp))
-                Text(activity.description, fontSize = 13.sp, color = Color(0xFF6B7280))
+                Text(activity.description, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
 
             if (activity.cost != null) {
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(
-                    "Cost: \$${activity.cost}",
+                    "Cost: $${activity.cost}",
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Medium,
-                    color = Color(0xFF0F766E)
+                    color = MaterialTheme.colorScheme.secondary
                 )
             }
         }
@@ -378,10 +415,10 @@ fun LabeledField(
     Column(modifier = modifier) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             if (leadingIcon != null) {
-                Icon(leadingIcon, contentDescription = null, tint = Color(0xFF111827))
+                Icon(leadingIcon, contentDescription = null, tint = MaterialTheme.colorScheme.onSurface)
                 Spacer(modifier = Modifier.width(8.dp))
             }
-            Text(label, fontSize = 13.sp, fontWeight = FontWeight.Medium, color = Color(0xFF111827))
+            Text(label, fontSize = 13.sp, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
         }
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -392,7 +429,11 @@ fun LabeledField(
             placeholder = { Text(placeholder) },
             modifier = Modifier.fillMaxWidth(),
             singleLine = singleLine,
-            shape = RoundedCornerShape(14.dp)
+            shape = RoundedCornerShape(14.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor = MaterialTheme.colorScheme.outline
+            )
         )
     }
 }
@@ -403,21 +444,19 @@ fun CategoryChip(
     selected: Boolean,
     onClick: () -> Unit
 ) {
-    val borderColor = if (selected) Color(0xFF2563EB) else Color(0xFFE5E7EB)
-    val backgroundColor = if (selected) Color(0xFFEFF6FF) else Color.White
+    val borderColor = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
+    val backgroundColor = if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface
 
-    Column(
+    Card(
         modifier = Modifier
             .fillMaxWidth()
-            .background(backgroundColor, RoundedCornerShape(14.dp))
-            .border(1.dp, borderColor, RoundedCornerShape(14.dp))
-            .padding(vertical = 14.dp)
+            .clickable { onClick() },
+        shape = RoundedCornerShape(14.dp),
+        border = BorderStroke(1.dp, borderColor),
+        colors = CardDefaults.cardColors(containerColor = backgroundColor)
     ) {
-        TextButton(
-            onClick = onClick,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text(label, color = Color(0xFF374151))
+        Box(modifier = Modifier.fillMaxWidth().padding(vertical = 14.dp), contentAlignment = Alignment.Center) {
+            Text(label, color = if (selected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface)
         }
     }
 }
@@ -427,10 +466,10 @@ fun ExpenseSummaryRow(
     title: String,
     amount: String,
     icon: ImageVector,
-    tint: Color,
-    backgroundTint: Color
+    tint: Color = MaterialTheme.colorScheme.primary,
+    backgroundTint: Color = MaterialTheme.colorScheme.primaryContainer
 ) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 8.dp)) {
         Box(
             modifier = Modifier
                 .size(40.dp)
@@ -441,9 +480,18 @@ fun ExpenseSummaryRow(
         }
         Spacer(modifier = Modifier.width(12.dp))
         Column(modifier = Modifier.weight(1f)) {
-            Text(title, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = Color(0xFF111827))
+            Text(title, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
         }
-        Text(amount, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = Color(0xFF111827))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(amount, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
+            Spacer(Modifier.width(8.dp))
+            Icon(
+                Icons.Default.Delete,
+                contentDescription = "Delete",
+                tint = MaterialTheme.colorScheme.error,
+                modifier = Modifier.size(18.dp).clickable { /* TODO */ }
+            )
+        }
     }
 }
 
@@ -454,8 +502,8 @@ fun BudgetCategoryButton(
     selected: Boolean,
     onClick: () -> Unit
 ) {
-    val borderColor = if (selected) Color(0xFF2563EB) else Color(0xFFE5E7EB)
-    val background = if (selected) Color(0xFFEFF6FF) else Color.White
+    val borderColor = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
+    val background = if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface
 
     Button(
         onClick = onClick,
@@ -470,10 +518,14 @@ fun BudgetCategoryButton(
                 shortLabel,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.SemiBold,
-                color = Color(0xFF374151)
+                color = if (selected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
             )
             Spacer(modifier = Modifier.height(4.dp))
-            Text(label, fontSize = 11.sp, color = Color(0xFF374151))
+            Text(
+                label,
+                fontSize = 11.sp,
+                color = if (selected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }

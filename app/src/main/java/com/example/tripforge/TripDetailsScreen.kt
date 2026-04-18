@@ -5,67 +5,87 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AttachMoney
-import androidx.compose.material.icons.filled.CalendarToday
-import androidx.compose.material.icons.filled.Folder
-import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.example.tripforge.data.sampleDayPlans
 import com.example.tripforge.data.sampleTripDetails
 import com.example.tripforge.ui.components.MetricCard
-import com.example.tripforge.ui.components.ProgressBar
-import com.example.tripforge.ui.components.ScreenHeader
 import com.example.tripforge.ui.components.SectionHeader
 import com.example.tripforge.ui.components.TripBulletItem
 
 @Composable
 fun TripDetailsScreen(
-    tripId: Int = sampleTripDetails.id,
-    onBack: () -> Unit = { /* TODO placeholder */ },
-    onOpenBudget: () -> Unit = { /* TODO placeholder */ },
-    onOpenItinerary: () -> Unit = { /* TODO placeholder */ }
+    onBack: () -> Unit = {},
+    onOpenBudget: () -> Unit = {},
+    onOpenItinerary: () -> Unit = {},
+    onOpenPacking: () -> Unit = {}
 ) {
     val trip = sampleTripDetails
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF9FAFB))
+            .background(MaterialTheme.colorScheme.background)
             .verticalScroll(rememberScrollState())
     ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(240.dp)
-                .background(Color(0xFF1D4ED8))
+                .background(MaterialTheme.colorScheme.primary)
         ) {
             Column(
                 modifier = Modifier
                     .align(Alignment.BottomStart)
                     .padding(24.dp)
             ) {
-                Text(trip.title, color = Color.White, fontSize = MaterialTheme.typography.headlineMedium.fontSize)
+                Text(trip.title, color = MaterialTheme.colorScheme.onPrimary, style = MaterialTheme.typography.headlineMedium)
                 Spacer(modifier = Modifier.height(4.dp))
                 Row {
-                    Text(trip.location, color = Color.White.copy(alpha = 0.9f), fontSize = MaterialTheme.typography.bodyMedium.fontSize)
+                    Text(trip.location, color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.9f), style = MaterialTheme.typography.bodyMedium)
                     Spacer(modifier = Modifier.width(10.dp))
-                    Text("11 days", color = Color.White.copy(alpha = 0.9f), fontSize = MaterialTheme.typography.bodyMedium.fontSize)
+                    Text("11 days", color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.9f), style = MaterialTheme.typography.bodyMedium)
                 }
             }
 
-            IconButton(
-                onClick = onBack,
+            Row(
                 modifier = Modifier
-                    .padding(24.dp)
-                    .size(40.dp)
-                    .background(Color.Black.copy(alpha = 0.30f), shape = MaterialTheme.shapes.large)
+                    .fillMaxWidth()
+                    .padding(24.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Icon(Icons.Default.CalendarToday, contentDescription = null, tint = Color.White)
+                IconButton(
+                    onClick = onBack,
+                    modifier = Modifier
+                        .size(40.dp)
+                        .background(Color.Black.copy(alpha = 0.30f), shape = MaterialTheme.shapes.large)
+                ) {
+                    Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.White)
+                }
+                
+                Row {
+                    IconButton(
+                        onClick = { /* TODO: Edit */ },
+                        modifier = Modifier
+                            .size(40.dp)
+                            .background(Color.Black.copy(alpha = 0.30f), shape = MaterialTheme.shapes.large)
+                    ) {
+                        Icon(Icons.Default.Edit, contentDescription = "Edit", tint = Color.White)
+                    }
+                    Spacer(Modifier.width(8.dp))
+                    IconButton(
+                        onClick = { /* TODO: Delete */ },
+                        modifier = Modifier
+                            .size(40.dp)
+                            .background(Color.Black.copy(alpha = 0.30f), shape = MaterialTheme.shapes.large)
+                    ) {
+                        Icon(Icons.Default.Delete, contentDescription = "Delete", tint = Color.White)
+                    }
+                }
             }
         }
 
@@ -73,7 +93,10 @@ fun TripDetailsScreen(
             modifier = Modifier.padding(24.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Card(shape = MaterialTheme.shapes.large) {
+            Card(
+                shape = MaterialTheme.shapes.large,
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+            ) {
                 Row(
                     modifier = Modifier.padding(16.dp),
                     verticalAlignment = Alignment.CenterVertically
@@ -81,15 +104,15 @@ fun TripDetailsScreen(
                     Box(
                         modifier = Modifier
                             .size(44.dp)
-                            .background(Color(0xFFEFF6FF), shape = MaterialTheme.shapes.medium),
+                            .background(MaterialTheme.colorScheme.primaryContainer, shape = MaterialTheme.shapes.medium),
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(Icons.Default.CalendarToday, contentDescription = null, tint = Color(0xFF2563EB))
+                        Icon(Icons.Default.CalendarToday, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                     }
                     Spacer(modifier = Modifier.width(12.dp))
                     Column {
-                        Text("Travel Dates", fontSize = MaterialTheme.typography.bodySmall.fontSize, color = Color(0xFF6B7280))
-                        Text("April 14, 2026 - April 24, 2026", fontSize = MaterialTheme.typography.bodyMedium.fontSize, color = Color(0xFF111827))
+                        Text("Travel Dates", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text("April 14, 2026 - April 24, 2026", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
                     }
                 }
             }
@@ -100,23 +123,28 @@ fun TripDetailsScreen(
                     value = "$1,200",
                     subtitle = "of $3,500",
                     icon = Icons.Default.AttachMoney,
-                    iconTint = Color(0xFF0F766E),
-                    backgroundTint = Color(0xFFE6FFFB),
-                    modifier = Modifier.weight(1f)
+                    iconTint = MaterialTheme.colorScheme.secondary,
+                    backgroundTint = MaterialTheme.colorScheme.secondaryContainer,
+                    modifier = Modifier.weight(1f),
+                    onClick = onOpenBudget
                 )
 
                 MetricCard(
                     title = "Packing",
                     value = "5/12",
                     subtitle = "items packed",
-                    icon = Icons.Default.Folder,
-                    iconTint = Color(0xFFEA580C),
-                    backgroundTint = Color(0xFFFFF7ED),
-                    modifier = Modifier.weight(1f)
+                    icon = Icons.Default.Inventory,
+                    iconTint = MaterialTheme.colorScheme.tertiary,
+                    backgroundTint = MaterialTheme.colorScheme.tertiaryContainer,
+                    modifier = Modifier.weight(1f),
+                    onClick = onOpenPacking
                 )
             }
 
-            Card(shape = MaterialTheme.shapes.large) {
+            Card(
+                shape = MaterialTheme.shapes.large,
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+            ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     SectionHeader(
                         title = "Itinerary",

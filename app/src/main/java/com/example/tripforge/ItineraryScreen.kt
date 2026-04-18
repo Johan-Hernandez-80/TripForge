@@ -24,7 +24,7 @@ fun ItineraryScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF9FAFB))
+            .background(MaterialTheme.colorScheme.background)
     ) {
         Column(
             modifier = Modifier
@@ -33,7 +33,8 @@ fun ItineraryScreen(
         ) {
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(0.dp)
+                shape = RoundedCornerShape(0.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
             ) {
                 Column(modifier = Modifier.padding(24.dp)) {
                     ScreenHeader(
@@ -62,12 +63,12 @@ fun ItineraryScreen(
 
         FloatingActionButton(
             onClick = onAddActivity,
-            containerColor = Color(0xFF2563EB),
+            containerColor = MaterialTheme.colorScheme.primary,
             modifier = Modifier
                 .align(androidx.compose.ui.Alignment.BottomEnd)
                 .padding(24.dp)
         ) {
-            Icon(Icons.Default.Add, contentDescription = "Add activity", tint = Color.White)
+            Icon(Icons.Default.Add, contentDescription = "Add activity", tint = MaterialTheme.colorScheme.onPrimary)
         }
     }
 }

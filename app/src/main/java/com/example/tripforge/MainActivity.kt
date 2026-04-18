@@ -3,102 +3,129 @@ package com.example.tripforge
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
+import com.example.tripforge.ui.components.BottomNav
 import com.example.tripforge.ui.theme.TripForgeTheme
-import com.example.tripforge.ui.components.FeaturedTripCard
-import com.example.tripforge.ui.components.TripCardBig
-import com.example.tripforge.ui.components.TripCardLong
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            TripForgeTheme {
-                Surface(color = MaterialTheme.colorScheme.background) {
-                    HomeScreen()
-                }
+            var isDarkMode by rememberSaveable { mutableStateOf(false) }
+            
+            TripForgeTheme(darkTheme = isDarkMode) {
+                MainScreen(
+                    isDarkMode = isDarkMode,
+                    onDarkModeChange = { isDarkMode = it }
+                )
             }
         }
     }
 }
 
-// --- 1. HOME SCREEN PREVIEW ---
-@Preview(showBackground = true, name = "Home Screen", showSystemUi = true)
 @Composable
-fun HomeScreenPreview() {
-    TripForgeTheme {
-        HomeScreen()
-    }
-}
+fun MainScreen(
+    isDarkMode: Boolean,
+    onDarkModeChange: (Boolean) -> Unit
+) {
+    val navController = rememberNavController()
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentDestination = navBackStackEntry?.destination?.route
 
-// --- 2. TRIP DETAILS PREVIEW ---
-@Preview(showBackground = true, name = "Trip Details", showSystemUi = true)
-@Composable
-fun TripDetailsPreview() {
-    TripForgeTheme {
-        TripDetailsScreen()
-    }
-}
+    Scaffold(
+        bottomBar = {
+            // Only show bottom bar on main tabs
+            val mainTabs = listOf("home", "trips", "map", "profile")
+            if (currentDestination in mainTabs) {
+                Surface(
+                    tonalElevation = 0.dp,
+                    shadowElevation = 16.dp,
+                    color = MaterialTheme.colorScheme.surface
+                ) {
+                    BottomNav(
+                        selected = currentDestination ?: "home",
+                        onSelect = { route ->
+                            navController.navigate(route) {
+                                popUpTo(navController.graph.findStartDestination().id) {
+                                    saveState = true
+                                }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        }
+                    )
+                }
+            }
+        }
+    ) { innerPadding ->
+        NavHost(
+            navController = navController,
+            startDestination = "home",
+            modifier = Modifier.padding(innerPadding)
+        ) {
+            composable("home") { HomeScreen(navController) }
+            composable("trips") {
+                TripsScreen(
+                    onTripClick = { navController.navigate("trip_details") }
+                )
+            }
+            composable("map") { MapScreen() }
+            composable("profile") { 
+                ProfileScreen(
+                    isDarkMode = isDarkMode,
+                    onDarkModeChange = onDarkModeChange
+                ) 
+            }
+            
+            composable("add_trip") { 
+                AddTripScreen(
+                    onBack = { navController.popBackStack() },
+                    onSave = { navController.popBackStack() }
+                ) 
+            }
+            
+            composable("trip_details") {
+                TripDetailsScreen(
+                    onBack = { navController.popBackStack() },
+                    onOpenBudget = { navController.navigate("budget") },
+                    onOpenItinerary = { navController.navigate("itinerary") },
+                    onOpenPacking = { navController.navigate("packing_list") }
+                )
+            }
+            
+            composable("budget") {
+                BudgetScreen(onBack = { navController.popBackStack() })
+            }
+            
+            composable("itinerary") {
+                ItineraryScreen(
+                    onBack = { navController.popBackStack() },
+                    onAddActivity = { navController.navigate("add_activity") }
+                )
+            }
+            
+            composable("add_activity") {
+                AddActivityScreen(
+                    onBack = { navController.popBackStack() },
+                    onSave = { navController.popBackStack() }
+                )
+            }
 
-// --- 3. ITINERARY PREVIEW ---
-@Preview(showBackground = true, name = "Itinerary Screen", showSystemUi = true)
-@Composable
-fun ItineraryPreview() {
-    TripForgeTheme {
-        ItineraryScreen()
-    }
-}
-
-// --- 4. BUDGET PREVIEW ---
-@Preview(showBackground = true, name = "Budget Screen", showSystemUi = true)
-@Composable
-fun BudgetPreview() {
-    TripForgeTheme {
-        BudgetScreen()
-    }
-}
-
-// --- 5. ADD ACTIVITY PREVIEW ---
-@Preview(showBackground = true, name = "Add Activity Screen", showSystemUi = true)
-@Composable
-fun AddActivityPreview() {
-    TripForgeTheme {
-        AddActivityScreen()
-    }
-}
-
-// --- 6. MAP PREVIEW ---
-@Preview(showBackground = true, name = "Map Screen", showSystemUi = true)
-@Composable
-fun MapScreenPreview() {
-    TripForgeTheme {
-        MapScreen()
-    }
-}
-
-// --- 6. PACKING LIST SCREEN PREVIEW ---
-@Preview(showBackground = true, name = "Packing List Screen", showSystemUi = true)
-@Composable
-fun PackingListScreenPreview() {
-    TripForgeTheme {
-        PackingListScreen()
-    }
-}
-
-// --- 7. TRIPS SCREEN PREVIEW ---
-@Preview(showBackground = true, name = "Trips Screen", showSystemUi = true)
-@Composable
-fun TripsScreenPreview() {
-    TripForgeTheme {
-        TripsScreen()
+            composable("packing_list") {
+                PackingListScreen(onBack = { navController.popBackStack() })
+            }
+        }
     }
 }

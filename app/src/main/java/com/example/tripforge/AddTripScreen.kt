@@ -6,11 +6,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AttachMoney
-import androidx.compose.material.icons.filled.CalendarToday
-import androidx.compose.material.icons.filled.Description
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.AccessTime
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -21,16 +17,15 @@ import com.example.tripforge.ui.components.LabeledField
 import com.example.tripforge.ui.components.ScreenHeader
 
 @Composable
-fun AddActivityScreen(
-    onBack: () -> Unit = { /* TODO placeholder */ },
-    onSave: () -> Unit = { /* TODO placeholder */ }
+fun AddTripScreen(
+    onBack: () -> Unit = {},
+    onSave: () -> Unit = {}
 ) {
-    var activityName by rememberSaveable { mutableStateOf("") }
+    var tripName by rememberSaveable { mutableStateOf("") }
     var location by rememberSaveable { mutableStateOf("") }
-    var date by rememberSaveable { mutableStateOf("") }
-    var time by rememberSaveable { mutableStateOf("") }
-    var description by rememberSaveable { mutableStateOf("") }
-    var cost by rememberSaveable { mutableStateOf("") }
+    var startDate by rememberSaveable { mutableStateOf("") }
+    var endDate by rememberSaveable { mutableStateOf("") }
+    var budget by rememberSaveable { mutableStateOf("") }
 
     Column(
         modifier = Modifier
@@ -41,74 +36,64 @@ fun AddActivityScreen(
         verticalArrangement = Arrangement.spacedBy(18.dp)
     ) {
         ScreenHeader(
-            title = "Add Activity",
-            subtitle = "Tokyo Adventure",
+            title = "Plan New Trip",
+            subtitle = "Create your adventure",
             onBack = onBack
         )
 
         LabeledField(
-            label = "Activity Name",
-            value = activityName,
-            onValueChange = { activityName = it },
-            placeholder = "e.g., Visit Eiffel Tower",
+            label = "Trip Name",
+            value = tripName,
+            onValueChange = { tripName = it },
+            placeholder = "e.g., Summer in Europe",
             leadingIcon = Icons.Default.Description
         )
 
         LabeledField(
-            label = "Location",
+            label = "Destination",
             value = location,
             onValueChange = { location = it },
-            placeholder = "e.g., Champ de Mars, Paris",
+            placeholder = "e.g., Paris, France",
             leadingIcon = Icons.Default.LocationOn
         )
 
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             LabeledField(
-                label = "Date",
-                value = date,
-                onValueChange = { date = it },
+                label = "Start Date",
+                value = startDate,
+                onValueChange = { startDate = it },
                 placeholder = "dd/mm/yyyy",
                 leadingIcon = Icons.Default.CalendarToday,
                 modifier = Modifier.weight(1f)
             )
 
             LabeledField(
-                label = "Time",
-                value = time,
-                onValueChange = { time = it },
-                placeholder = "--:--",
-                leadingIcon = Icons.Default.AccessTime,
+                label = "End Date",
+                value = endDate,
+                onValueChange = { endDate = it },
+                placeholder = "dd/mm/yyyy",
+                leadingIcon = Icons.Default.CalendarToday,
                 modifier = Modifier.weight(1f)
             )
         }
 
         LabeledField(
-            label = "Description (optional)",
-            value = description,
-            onValueChange = { description = it },
-            placeholder = "Add any details about this activity...",
-            leadingIcon = null,
-            singleLine = false
-        )
-
-        LabeledField(
-            label = "Estimated Cost (optional)",
-            value = cost,
-            onValueChange = { cost = it },
-            placeholder = "e.g., 50",
+            label = "Total Budget",
+            value = budget,
+            onValueChange = { budget = it },
+            placeholder = "e.g., 2000",
             leadingIcon = Icons.Default.AttachMoney
         )
+        
+        Spacer(modifier = Modifier.height(8.dp))
 
         Button(
-            onClick = {
-                // TODO: Save activity
-                onSave()
-            },
+            onClick = onSave,
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
         ) {
-            Text("Save Activity", color = MaterialTheme.colorScheme.onPrimary)
+            Text("Create Trip", color = MaterialTheme.colorScheme.onPrimary)
         }
     }
 }
