@@ -1,5 +1,7 @@
 package com.example.tripforge.model
 
+import kotlinx.serialization.Serializable
+
 enum class TripTab(val label: String) {
     ALL("All"),
     UPCOMING("Upcoming"),
@@ -25,20 +27,24 @@ enum class BudgetCategory(val label: String) {
     OTHER("Other")
 }
 
+@Serializable
 data class TripSummary(
-    val id: Int,
+    val id: String,
     val title: String,
     val location: String,
-    val dateRange: String,
-    val status: TripStatus,
-    val daysLeft: Int? = null,
-    val budgetSpent: Int = 0,
+    val startDate: String,
+    val endDate: String,
+    val status: TripStatus = TripStatus.UPCOMING,
     val budgetTotal: Int = 0,
-    val budgetProgress: Float = 0f
+    val budgetSpent: Int = 0,
+    val expenses: List<ExpenseItem> = emptyList(),
+    val itinerary: List<DayPlan> = emptyList(),
+    val packingList: List<PackingItem> = emptyList()
 )
 
+@Serializable
 data class ActivityItem(
-    val id: Int,
+    val id: String,
     val title: String,
     val location: String,
     val time: String = "",
@@ -47,6 +53,7 @@ data class ActivityItem(
     val completed: Boolean = false
 )
 
+@Serializable
 data class DayPlan(
     val day: Int,
     val dateLabel: String,
@@ -59,10 +66,19 @@ data class BudgetCategorySummary(
     val progress: Float
 )
 
+@Serializable
 data class ExpenseItem(
-    val id: Int,
+    val id: String,
     val description: String,
     val dateLabel: String,
     val amount: Int,
     val category: BudgetCategory
+)
+
+@Serializable
+data class PackingItem(
+    val id: Int,
+    val name: String,
+    val category: String,
+    val checked: Boolean
 )

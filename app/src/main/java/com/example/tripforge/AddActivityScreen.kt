@@ -17,14 +17,23 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalContext
+import com.example.tripforge.data.TripDataStore
+import com.example.tripforge.model.ActivityItem
 import com.example.tripforge.ui.components.LabeledField
 import com.example.tripforge.ui.components.ScreenHeader
+import kotlinx.coroutines.launch
+import java.util.UUID
 
 @Composable
 fun AddActivityScreen(
     onBack: () -> Unit = { /* TODO placeholder */ },
     onSave: () -> Unit = { /* TODO placeholder */ }
 ) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val dataStore = remember { TripDataStore(context) }
+    
     var activityName by rememberSaveable { mutableStateOf("") }
     var location by rememberSaveable { mutableStateOf("") }
     var date by rememberSaveable { mutableStateOf("") }
@@ -101,8 +110,21 @@ fun AddActivityScreen(
 
         Button(
             onClick = {
-                // TODO: Save activity
-                onSave()
+                if (activityName.isNotBlank()) {
+                    scope.launch {
+                        val newActivity = ActivityItem(
+                            id = UUID.randomUUID().toString(),
+                            title = activityName,
+                            location = location,
+                            time = time,
+                            description = description,
+                            cost = cost.toIntOrNull()
+                        )
+                        // Note: Using hardcoded ID for now as we don't have trip selection logic yet
+                        dataStore.addActivity("sample_trip_id", 1, newActivity)
+                        onSave()
+                    }
+                }
             },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),

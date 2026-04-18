@@ -9,7 +9,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.material.icons.Icons
@@ -24,7 +23,7 @@ fun BottomNav(
         modifier = Modifier
             .fillMaxWidth()
             .height(60.dp)
-            .background(Color.White),
+            .background(MaterialTheme.colorScheme.surface),
         horizontalArrangement = Arrangement.SpaceAround,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -56,7 +55,7 @@ fun NavItem(
     onClick: () -> Unit
 ) {
 
-    val color = if (isActive) Color(0xFF2563EB) else Color.Gray
+    val color = if (isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
 
     Column(
         modifier = modifier

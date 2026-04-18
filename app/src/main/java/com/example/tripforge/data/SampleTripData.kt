@@ -79,3 +79,43 @@ val sampleExpenses = listOf(
         category = BudgetCategory.TRANSPORT
     )
 )
+
+val samplePackingList = listOf(
+    PackingItem(
+        id = 1,
+        name = "Passport",
+        category = "Documents",
+        checked = true
+    ),
+    PackingItem(
+        id = 2,
+        name = "Travel Insurance",
+        category = "Documents",
+        checked = true
+    ),
+    PackingItem(
+        id = 3,
+        name = "JR Rail Pass",
+        category = "Documents",
+        checked = false
+    ),
+    PackingItem(
+        id = 4,
+        name = "T-shirts (5)",
+        category = "Clothes",
+        checked = false
+    ),
+    PackingItem(
+        id = 5,
+        name = "Jeans (2)",
+        category = "Clothes",
+        checked = false
+    ),
+
+    PackingItem(
+        id = 6,
+        name = "Jacket",
+        category = "Clothes",
+        checked = true
+    )
+)

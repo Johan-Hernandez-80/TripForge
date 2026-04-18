@@ -1,6 +1,7 @@
 package com.example.tripforge
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -16,20 +17,19 @@ import androidx.compose.ui.*
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.Alignment
-import com.example.tripforge.ui.components.BottomNav
-
-@Immutable
-data class PackingItem(
-    val id: Int,
-    val name: String,
-    val category: String,
-    val checked: Boolean
-)
+import androidx.compose.ui.platform.LocalContext
+import com.example.tripforge.data.TripDataStore
+import com.example.tripforge.model.PackingItem
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PackingListScreen(onBack: () -> Unit) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val dataStore = remember { TripDataStore(context) }
 
+    // Keeping the sample data for UI as requested, but we will save to DataStore
     var items by remember {
         mutableStateOf(
             listOf(
@@ -51,17 +51,27 @@ fun PackingListScreen(onBack: () -> Unit) {
         items = items.map {
             if (it.id == id) it.copy(checked = !it.checked) else it
         }
+        scope.launch {
+            // Save toggle state to DataStore (for sample trip id)
+            dataStore.togglePackingItem("sample_trip_id", id)
+        }
     }
 
     fun addItem() {
         if (newItemName.isNotBlank()) {
             val newId = (items.maxOfOrNull { it.id } ?: 0) + 1
-            items = items + PackingItem(
+            val newItem = PackingItem(
                 id = newId,
                 name = newItemName,
                 category = newItemCategory,
                 checked = false
             )
+            items = items + newItem
+            
+            scope.launch {
+                dataStore.addPackingItem("sample_trip_id", newItem)
+            }
+            
             newItemName = ""
             newItemCategory = "Documents"
             showDialog = false
@@ -89,9 +99,9 @@ fun PackingListScreen(onBack: () -> Unit) {
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { showDialog = true },
-                containerColor = MaterialTheme.colorScheme.primary
+                containerColor = MaterialTheme.colorScheme.tertiary
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Add item", tint = MaterialTheme.colorScheme.onPrimary)
+                Icon(Icons.Default.Add, contentDescription = "Add item", tint = MaterialTheme.colorScheme.onTertiary)
             }
         }
     ) { padding ->

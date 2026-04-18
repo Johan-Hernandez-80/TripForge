@@ -13,14 +13,24 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalContext
+import com.example.tripforge.data.TripDataStore
+import com.example.tripforge.model.TripStatus
+import com.example.tripforge.model.TripSummary
 import com.example.tripforge.ui.components.LabeledField
 import com.example.tripforge.ui.components.ScreenHeader
+import kotlinx.coroutines.launch
+import java.util.UUID
 
 @Composable
 fun AddTripScreen(
     onBack: () -> Unit = {},
     onSave: () -> Unit = {}
 ) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val dataStore = remember { TripDataStore(context) }
+    
     var tripName by rememberSaveable { mutableStateOf("") }
     var location by rememberSaveable { mutableStateOf("") }
     var startDate by rememberSaveable { mutableStateOf("") }
@@ -88,7 +98,23 @@ fun AddTripScreen(
         Spacer(modifier = Modifier.height(8.dp))
 
         Button(
-            onClick = onSave,
+            onClick = {
+                if (tripName.isNotBlank() && location.isNotBlank()) {
+                    scope.launch {
+                        val newTrip = TripSummary(
+                            id = UUID.randomUUID().toString(),
+                            title = tripName,
+                            location = location,
+                            startDate = startDate,
+                            endDate = endDate,
+                            budgetTotal = budget.toIntOrNull() ?: 0,
+                            status = TripStatus.UPCOMING
+                        )
+                        dataStore.saveTrip(newTrip)
+                        onSave()
+                    }
+                }
+            },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)

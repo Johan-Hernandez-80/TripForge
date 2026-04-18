@@ -496,9 +496,9 @@ fun ExpenseSummaryRow(
 }
 
 @Composable
-fun BudgetCategoryButton(
+fun CategoryButton(
     label: String,
-    shortLabel: String,
+    icon: ImageVector,
     selected: Boolean,
     onClick: () -> Unit
 ) {
@@ -514,11 +514,11 @@ fun BudgetCategoryButton(
         border = BorderStroke(1.dp, borderColor)
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(
-                shortLabel,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = if (selected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
+            Icon(
+                imageVector = icon,
+                contentDescription = label,
+                modifier = Modifier.size(24.dp),
+                tint = if (selected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(

@@ -1,43 +1,40 @@
 package com.example.tripforge
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.AttachMoney
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.TrendingDown
-import androidx.compose.material.icons.filled.TrendingUp
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Folder
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalContext
+import com.example.tripforge.data.TripDataStore
 import com.example.tripforge.data.sampleBudgetCategories
 import com.example.tripforge.data.sampleExpenses
-import com.example.tripforge.data.sampleTripDetails
 import com.example.tripforge.model.BudgetCategory
-import com.example.tripforge.ui.components.BudgetCategoryButton
+import com.example.tripforge.model.ExpenseItem
+import com.example.tripforge.ui.components.CategoryButton
 import com.example.tripforge.ui.components.ExpenseSummaryRow
 import com.example.tripforge.ui.components.ProgressBar
 import com.example.tripforge.ui.components.ScreenHeader
 import com.example.tripforge.ui.components.SectionHeader
+import kotlinx.coroutines.launch
+import java.util.UUID
 
 @Composable
 fun BudgetScreen(
     onBack: () -> Unit = { /* TODO placeholder */ }
 ) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val dataStore = remember { TripDataStore(context) }
+    
     var showAddExpense by rememberSaveable { mutableStateOf(false) }
     var selectedCategory by rememberSaveable { mutableStateOf<BudgetCategory?>(null) }
     var expenseDescription by rememberSaveable { mutableStateOf("") }
@@ -179,12 +176,12 @@ fun BudgetScreen(
 
         FloatingActionButton(
             onClick = { showAddExpense = true },
-            containerColor = MaterialTheme.colorScheme.primary,
+            containerColor = MaterialTheme.colorScheme.tertiary,
             modifier = Modifier
                 .align(androidx.compose.ui.Alignment.BottomEnd)
                 .padding(24.dp)
         ) {
-            Icon(Icons.Default.Add, contentDescription = "Add expense", tint = MaterialTheme.colorScheme.onPrimary)
+            Icon(Icons.Default.Add, contentDescription = "Add expense", tint = MaterialTheme.colorScheme.onTertiary)
         }
 
         if (showAddExpense) {
@@ -239,25 +236,25 @@ fun BudgetScreen(
                             Text("Category", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
                             Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
                                 Box(modifier = Modifier.weight(1f)) {
-                                    BudgetCategoryButton(
+                                    CategoryButton(
                                         label = "Transport",
-                                        shortLabel = "TR",
+                                        icon = Icons.Default.DirectionsBus,
                                         selected = selectedCategory == BudgetCategory.TRANSPORT,
                                         onClick = { selectedCategory = BudgetCategory.TRANSPORT }
                                     )
                                 }
                                 Box(modifier = Modifier.weight(1f)) {
-                                    BudgetCategoryButton(
+                                    CategoryButton(
                                         label = "Accommodation",
-                                        shortLabel = "AC",
+                                        icon = Icons.Default.Hotel,
                                         selected = selectedCategory == BudgetCategory.ACCOMMODATION,
                                         onClick = { selectedCategory = BudgetCategory.ACCOMMODATION }
                                     )
                                 }
                                 Box(modifier = Modifier.weight(1f)) {
-                                    BudgetCategoryButton(
+                                    CategoryButton(
                                         label = "Food",
-                                        shortLabel = "FD",
+                                        icon = Icons.Default.Restaurant,
                                         selected = selectedCategory == BudgetCategory.FOOD,
                                         onClick = { selectedCategory = BudgetCategory.FOOD }
                                     )
@@ -266,17 +263,17 @@ fun BudgetScreen(
 
                             Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
                                 Box(modifier = Modifier.weight(1f)) {
-                                    BudgetCategoryButton(
+                                    CategoryButton(
                                         label = "Activities",
-                                        shortLabel = "AT",
+                                        icon = Icons.Default.ConfirmationNumber,
                                         selected = selectedCategory == BudgetCategory.ACTIVITIES,
                                         onClick = { selectedCategory = BudgetCategory.ACTIVITIES }
                                     )
                                 }
                                 Box(modifier = Modifier.weight(1f)) {
-                                    BudgetCategoryButton(
+                                    CategoryButton(
                                         label = "Other",
-                                        shortLabel = "OT",
+                                        icon = Icons.Default.Category,
                                         selected = selectedCategory == BudgetCategory.OTHER,
                                         onClick = { selectedCategory = BudgetCategory.OTHER }
                                     )
@@ -287,11 +284,22 @@ fun BudgetScreen(
 
                         Button(
                             onClick = { 
-                                // TODO: Save expense
-                                showAddExpense = false
-                                expenseDescription = ""
-                                expenseAmount = ""
-                                selectedCategory = null
+                                if (expenseDescription.isNotBlank() && expenseAmount.isNotBlank() && selectedCategory != null) {
+                                    scope.launch {
+                                        val newExpense = ExpenseItem(
+                                            id = UUID.randomUUID().toString(),
+                                            description = expenseDescription,
+                                            amount = expenseAmount.toIntOrNull() ?: 0,
+                                            category = selectedCategory!!,
+                                            dateLabel = "Today"
+                                        )
+                                        dataStore.addExpense("sample_trip_id", newExpense)
+                                        showAddExpense = false
+                                        expenseDescription = ""
+                                        expenseAmount = ""
+                                        selectedCategory = null
+                                    }
+                                }
                             },
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(16.dp),
