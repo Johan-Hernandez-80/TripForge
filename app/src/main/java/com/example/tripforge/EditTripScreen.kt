@@ -11,19 +11,17 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalContext
 import com.example.tripforge.data.TripRepository
-import com.example.tripforge.model.TripStatus
 import com.example.tripforge.model.TripSummary
 import com.example.tripforge.ui.components.LabeledField
 import com.example.tripforge.ui.components.ScreenHeader
 import kotlinx.coroutines.launch
-import java.util.UUID
 
 @Composable
-fun AddTripScreen(
+fun EditTripScreen(
+    trip: TripSummary,
     onBack: () -> Unit = {},
     onSave: () -> Unit = {}
 ) {
@@ -31,11 +29,11 @@ fun AddTripScreen(
     val scope = rememberCoroutineScope()
     val repository = remember { TripRepository(context) }
     
-    var tripName by rememberSaveable { mutableStateOf("") }
-    var location by rememberSaveable { mutableStateOf("") }
-    var startDate by rememberSaveable { mutableStateOf("") }
-    var endDate by rememberSaveable { mutableStateOf("") }
-    var budget by rememberSaveable { mutableStateOf("") }
+    var tripName by rememberSaveable { mutableStateOf(trip.title) }
+    var location by rememberSaveable { mutableStateOf(trip.location) }
+    var startDate by rememberSaveable { mutableStateOf(trip.startDate) }
+    var endDate by rememberSaveable { mutableStateOf(trip.endDate) }
+    var budget by rememberSaveable { mutableStateOf(trip.budgetTotal.toString()) }
 
     Column(
         modifier = Modifier
@@ -46,8 +44,8 @@ fun AddTripScreen(
         verticalArrangement = Arrangement.spacedBy(18.dp)
     ) {
         ScreenHeader(
-            title = "Plan New Trip",
-            subtitle = "Create your adventure",
+            title = "Edit Trip",
+            subtitle = trip.title,
             onBack = onBack
         )
 
@@ -101,16 +99,14 @@ fun AddTripScreen(
             onClick = {
                 if (tripName.isNotBlank() && location.isNotBlank()) {
                     scope.launch {
-                        val newTrip = TripSummary(
-                            id = UUID.randomUUID().toString(),
+                        val updatedTrip = trip.copy(
                             title = tripName,
                             location = location,
                             startDate = startDate,
                             endDate = endDate,
-                            budgetTotal = budget.toIntOrNull() ?: 0,
-                            status = TripStatus.UPCOMING
+                            budgetTotal = budget.toIntOrNull() ?: 0
                         )
-                        repository.saveTrip(newTrip)
+                        repository.saveTrip(updatedTrip, isEdit = true)
                         onSave()
                     }
                 }
@@ -119,7 +115,7 @@ fun AddTripScreen(
             shape = RoundedCornerShape(16.dp),
             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
         ) {
-            Text("Create Trip", color = MaterialTheme.colorScheme.onPrimary)
+            Text("Save Changes", color = MaterialTheme.colorScheme.onPrimary)
         }
     }
 }

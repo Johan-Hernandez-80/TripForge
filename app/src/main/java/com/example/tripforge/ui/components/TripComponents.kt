@@ -176,7 +176,9 @@ fun TripPreviewCard(
     budgetSpentText: String? = null,
     progress: Float? = null,
     modifier: Modifier = Modifier,
-    onClick: () -> Unit = {}
+    onClick: () -> Unit = {},
+    onEdit: () -> Unit = {},
+    onDelete: () -> Unit = {}
 ) {
     Card(
         modifier = modifier.clickable { onClick() },
@@ -241,10 +243,10 @@ fun TripPreviewCard(
                 
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                    IconButton(onClick = { /* TODO: Edit */ }) {
+                    IconButton(onClick = onEdit) {
                         Icon(Icons.Default.Edit, contentDescription = "Edit", tint = MaterialTheme.colorScheme.primary)
                     }
-                    IconButton(onClick = { /* TODO: Delete */ }) {
+                    IconButton(onClick = onDelete) {
                         Icon(Icons.Default.Delete, contentDescription = "Delete", tint = MaterialTheme.colorScheme.error)
                     }
                 }
@@ -294,7 +296,8 @@ fun TripBulletItem(
 fun TripDaySection(
     day: Int,
     dateLabel: String,
-    activities: List<ActivityItem>
+    activities: List<ActivityItem>,
+    onDeleteActivity: (String) -> Unit = {}
 ) {
     Column {
         Row(
@@ -325,7 +328,7 @@ fun TripDaySection(
                 .padding(start = 18.dp)
         ) {
             activities.forEachIndexed { index, activity ->
-                TripActivityCard(activity = activity)
+                TripActivityCard(activity = activity, onDelete = { onDeleteActivity(activity.id) })
                 if (index != activities.lastIndex) {
                     Spacer(modifier = Modifier.height(12.dp))
                 }
@@ -335,7 +338,11 @@ fun TripDaySection(
 }
 
 @Composable
-fun TripActivityCard(activity: ActivityItem) {
+fun TripActivityCard(
+    activity: ActivityItem,
+    onEdit: () -> Unit = {},
+    onDelete: () -> Unit = {}
+) {
     Card(
         shape = RoundedCornerShape(18.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
@@ -369,14 +376,14 @@ fun TripActivityCard(activity: ActivityItem) {
                         Icons.Default.Edit,
                         contentDescription = "Edit",
                         tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(18.dp).clickable { /* TODO */ }
+                        modifier = Modifier.size(18.dp).clickable { onEdit() }
                     )
                     Spacer(Modifier.width(8.dp))
                     Icon(
                         Icons.Default.Delete,
                         contentDescription = "Delete",
                         tint = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.size(18.dp).clickable { /* TODO */ }
+                        modifier = Modifier.size(18.dp).clickable { onDelete() }
                     )
                 }
             }
@@ -467,7 +474,8 @@ fun ExpenseSummaryRow(
     amount: String,
     icon: ImageVector,
     tint: Color = MaterialTheme.colorScheme.primary,
-    backgroundTint: Color = MaterialTheme.colorScheme.primaryContainer
+    backgroundTint: Color = MaterialTheme.colorScheme.primaryContainer,
+    onDelete: () -> Unit = {}
 ) {
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 8.dp)) {
         Box(
@@ -489,7 +497,7 @@ fun ExpenseSummaryRow(
                 Icons.Default.Delete,
                 contentDescription = "Delete",
                 tint = MaterialTheme.colorScheme.error,
-                modifier = Modifier.size(18.dp).clickable { /* TODO */ }
+                modifier = Modifier.size(18.dp).clickable { onDelete() }
             )
         }
     }

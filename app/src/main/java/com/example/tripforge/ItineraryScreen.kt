@@ -8,19 +8,27 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalContext
+import com.example.tripforge.data.TripDataStore
 import com.example.tripforge.data.sampleDayPlans
 import com.example.tripforge.ui.components.ScreenHeader
 import com.example.tripforge.ui.components.TripDaySection
+import kotlinx.coroutines.launch
 
 @Composable
 fun ItineraryScreen(
-    onBack: () -> Unit = { /* TODO placeholder */ },
-    onAddActivity: () -> Unit = { /* TODO placeholder */ }
+    onBack: () -> Unit = {},
+    onAddActivity: () -> Unit = {}
 ) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val dataStore = remember { TripDataStore(context) }
+    val tripId = "sample_trip_id"
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -53,7 +61,12 @@ fun ItineraryScreen(
                     TripDaySection(
                         day = dayPlan.day,
                         dateLabel = dayPlan.dateLabel,
-                        activities = dayPlan.activities
+                        activities = dayPlan.activities,
+                        onDeleteActivity = { activityId ->
+                            scope.launch {
+                                dataStore.deleteActivity(tripId, activityId)
+                            }
+                        }
                     )
                 }
             }

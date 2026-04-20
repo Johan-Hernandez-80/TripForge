@@ -3,6 +3,8 @@ package com.example.tripforge
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
@@ -12,14 +14,24 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import com.example.tripforge.data.TripRepository
+import com.example.tripforge.model.TripSummary
 import com.example.tripforge.ui.components.BottomNav
+import kotlinx.coroutines.launch
 
 @Composable
 fun TripsScreen(
     onTripClick: () -> Unit,
+    onEditTrip: (TripSummary) -> Unit = {},
     selectedTab: String? = null,
     onSelectTab: ((String) -> Unit)? = null
 ) {
+    val context = LocalContext.current
+    val repository = remember { TripRepository(context) }
+    val trips by repository.trips.collectAsState(initial = emptyList())
+    val scope = rememberCoroutineScope()
+
     val tabs = listOf("All", "Upcoming", "Ongoing", "Complete")
     var activeTab by remember { mutableStateOf("All") }
 
@@ -76,14 +88,34 @@ fun TripsScreen(
 
             Spacer(Modifier.height(16.dp))
 
-            TripCard("Tokyo Adventure", "Tokyo, Japan", onClick = onTripClick)
-            TripCard("Paris Romance", "Paris, France", onClick = onTripClick)
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(bottom = 16.dp)
+            ) {
+                items(trips) { trip ->
+                    TripCard(
+                        trip = trip,
+                        onClick = onTripClick,
+                        onEdit = { onEditTrip(trip) },
+                        onDelete = {
+                            scope.launch {
+                                repository.deleteTrip(trip.id)
+                            }
+                        }
+                    )
+                }
+            }
         }
     }
 }
 
 @Composable
-fun TripCard(title: String, location: String, onClick: () -> Unit) {
+fun TripCard(
+    trip: TripSummary,
+    onClick: () -> Unit,
+    onEdit: () -> Unit,
+    onDelete: () -> Unit
+) {
     Column(
         modifier = Modifier
             .padding(horizontal = 24.dp, vertical = 8.dp)
@@ -104,15 +136,15 @@ fun TripCard(title: String, location: String, onClick: () -> Unit) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text(title, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
-                Text(location, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(trip.title, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
+                Text(trip.location, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             
             Row {
-                IconButton(onClick = { /* TODO: Edit trip */ }) {
+                IconButton(onClick = onEdit) {
                     Icon(Icons.Default.Edit, contentDescription = "Edit", tint = MaterialTheme.colorScheme.primary)
                 }
-                IconButton(onClick = { /* TODO: Delete trip */ }) {
+                IconButton(onClick = onDelete) {
                     Icon(Icons.Default.Delete, contentDescription = "Delete", tint = MaterialTheme.colorScheme.error)
                 }
             }

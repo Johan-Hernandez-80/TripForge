@@ -14,7 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalContext
-import com.example.tripforge.data.TripDataStore
+import com.example.tripforge.data.TripRepository
 import com.example.tripforge.data.sampleBudgetCategories
 import com.example.tripforge.data.sampleExpenses
 import com.example.tripforge.model.BudgetCategory
@@ -29,11 +29,12 @@ import java.util.UUID
 
 @Composable
 fun BudgetScreen(
-    onBack: () -> Unit = { /* TODO placeholder */ }
+    onBack: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val dataStore = remember { TripDataStore(context) }
+    val repository = remember { TripRepository(context) }
+    val tripId = "sample_trip_id"
     
     var showAddExpense by rememberSaveable { mutableStateOf(false) }
     var selectedCategory by rememberSaveable { mutableStateOf<BudgetCategory?>(null) }
@@ -164,7 +165,12 @@ fun BudgetScreen(
                                 amount = "$${expense.amount}",
                                 icon = Icons.Default.AttachMoney,
                                 tint = MaterialTheme.colorScheme.primary,
-                                backgroundTint = MaterialTheme.colorScheme.primaryContainer
+                                backgroundTint = MaterialTheme.colorScheme.primaryContainer,
+                                onDelete = {
+                                    scope.launch {
+                                        repository.deleteExpense(tripId, expense.id)
+                                    }
+                                }
                             )
                         }
                     }
@@ -293,7 +299,7 @@ fun BudgetScreen(
                                             category = selectedCategory!!,
                                             dateLabel = "Today"
                                         )
-                                        dataStore.addExpense("sample_trip_id", newExpense)
+                                        repository.addExpense(tripId, newExpense)
                                         showAddExpense = false
                                         expenseDescription = ""
                                         expenseAmount = ""

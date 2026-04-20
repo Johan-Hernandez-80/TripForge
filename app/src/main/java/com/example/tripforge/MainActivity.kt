@@ -16,8 +16,14 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.example.tripforge.model.TripSummary
 import com.example.tripforge.ui.components.BottomNav
 import com.example.tripforge.ui.theme.TripForgeTheme
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.encodeToString
+import android.net.Uri
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -78,7 +84,14 @@ fun MainScreen(
             composable("home") { HomeScreen(navController) }
             composable("trips") {
                 TripsScreen(
-                    onTripClick = { navController.navigate("trip_details") }
+                    onTripClick = { trip ->
+                        val tripJson = Uri.encode(Json.encodeToString(trip))
+                        navController.navigate("trip_details/$tripJson")
+                    },
+                    onEditTrip = { trip ->
+                        val tripJson = Uri.encode(Json.encodeToString(trip))
+                        navController.navigate("edit_trip/$tripJson")
+                    }
                 )
             }
             composable("map") { MapScreen() }
@@ -95,36 +108,107 @@ fun MainScreen(
                     onSave = { navController.popBackStack() }
                 ) 
             }
-            
-            composable("trip_details") {
-                TripDetailsScreen(
-                    onBack = { navController.popBackStack() },
-                    onOpenBudget = { navController.navigate("budget") },
-                    onOpenItinerary = { navController.navigate("itinerary") },
-                    onOpenPacking = { navController.navigate("packing_list") }
-                )
+
+            composable(
+                route = "edit_trip/{tripJson}",
+                arguments = listOf(navArgument("tripJson") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val tripJson = backStackEntry.arguments?.getString("tripJson")
+                val trip = tripJson?.let { Json.decodeFromString<TripSummary>(Uri.decode(it)) }
+                if (trip != null) {
+                    EditTripScreen(
+                        trip = trip,
+                        onBack = { navController.popBackStack() },
+                        onSave = { navController.popBackStack() }
+                    )
+                }
             }
             
-            composable("budget") {
-                BudgetScreen(onBack = { navController.popBackStack() })
+            composable(
+                route = "trip_details/{tripJson}",
+                arguments = listOf(navArgument("tripJson") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val tripJson = backStackEntry.arguments?.getString("tripJson")
+                val trip = tripJson?.let { Json.decodeFromString<TripSummary>(Uri.decode(it)) }
+                if (trip != null) {
+                    TripDetailsScreen(
+                        trip = trip,
+                        onBack = { navController.popBackStack() },
+                        onEdit = {
+                            val encoded = Uri.encode(Json.encodeToString(trip))
+                            navController.navigate("edit_trip/$encoded")
+                        },
+                        onOpenBudget = { 
+                            val encoded = Uri.encode(Json.encodeToString(trip))
+                            navController.navigate("budget/$encoded") 
+                        },
+                        onOpenItinerary = { 
+                            val encoded = Uri.encode(Json.encodeToString(trip))
+                            navController.navigate("itinerary/$encoded") 
+                        },
+                        onOpenPacking = { 
+                            val encoded = Uri.encode(Json.encodeToString(trip))
+                            navController.navigate("packing_list/$encoded") 
+                        }
+                    )
+                }
             }
             
-            composable("itinerary") {
-                ItineraryScreen(
-                    onBack = { navController.popBackStack() },
-                    onAddActivity = { navController.navigate("add_activity") }
-                )
+            composable(
+                route = "budget/{tripJson}",
+                arguments = listOf(navArgument("tripJson") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val tripJson = backStackEntry.arguments?.getString("tripJson")
+                val trip = tripJson?.let { Json.decodeFromString<TripSummary>(Uri.decode(it)) }
+                if (trip != null) {
+                    BudgetScreen(
+                        tripId = trip.id,
+                        onBack = { navController.popBackStack() }
+                    )
+                }
             }
             
-            composable("add_activity") {
+            composable(
+                route = "itinerary/{tripJson}",
+                arguments = listOf(navArgument("tripJson") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val tripJson = backStackEntry.arguments?.getString("tripJson")
+                val trip = tripJson?.let { Json.decodeFromString<TripSummary>(Uri.decode(it)) }
+                if (trip != null) {
+                    ItineraryScreen(
+                        tripId = trip.id,
+                        onBack = { navController.popBackStack() },
+                        onAddActivity = { 
+                            navController.navigate("add_activity/${trip.id}") 
+                        }
+                    )
+                }
+            }
+            
+            composable(
+                route = "add_activity/{tripId}",
+                arguments = listOf(navArgument("tripId") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val tripId = backStackEntry.arguments?.getString("tripId") ?: ""
                 AddActivityScreen(
+                    tripId = tripId,
                     onBack = { navController.popBackStack() },
                     onSave = { navController.popBackStack() }
                 )
             }
 
-            composable("packing_list") {
-                PackingListScreen(onBack = { navController.popBackStack() })
+            composable(
+                route = "packing_list/{tripJson}",
+                arguments = listOf(navArgument("tripJson") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val tripJson = backStackEntry.arguments?.getString("tripJson")
+                val trip = tripJson?.let { Json.decodeFromString<TripSummary>(Uri.decode(it)) }
+                if (trip != null) {
+                    PackingListScreen(
+                        tripId = trip.id,
+                        onBack = { navController.popBackStack() }
+                    )
+                }
             }
         }
     }

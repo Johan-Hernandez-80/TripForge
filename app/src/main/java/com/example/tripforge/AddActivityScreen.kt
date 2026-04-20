@@ -18,7 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalContext
-import com.example.tripforge.data.TripDataStore
+import com.example.tripforge.data.TripRepository
 import com.example.tripforge.model.ActivityItem
 import com.example.tripforge.ui.components.LabeledField
 import com.example.tripforge.ui.components.ScreenHeader
@@ -27,12 +27,12 @@ import java.util.UUID
 
 @Composable
 fun AddActivityScreen(
-    onBack: () -> Unit = { /* TODO placeholder */ },
-    onSave: () -> Unit = { /* TODO placeholder */ }
+    onBack: () -> Unit = {},
+    onSave: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val dataStore = remember { TripDataStore(context) }
+    val repository = remember { TripRepository(context) }
     
     var activityName by rememberSaveable { mutableStateOf("") }
     var location by rememberSaveable { mutableStateOf("") }
@@ -120,8 +120,7 @@ fun AddActivityScreen(
                             description = description,
                             cost = cost.toIntOrNull()
                         )
-                        // Note: Using hardcoded ID for now as we don't have trip selection logic yet
-                        dataStore.addActivity("sample_trip_id", 1, newActivity)
+                        repository.addActivity("sample_trip_id", 1, newActivity)
                         onSave()
                     }
                 }

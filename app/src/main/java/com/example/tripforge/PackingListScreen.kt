@@ -8,18 +8,20 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.*
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
-import com.example.tripforge.data.TripDataStore
+import com.example.tripforge.data.TripRepository
+import com.example.tripforge.data.samplePackingList
+import com.example.tripforge.model.BudgetCategory
 import com.example.tripforge.model.PackingItem
+import com.example.tripforge.ui.components.CategoryButton
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -27,54 +29,50 @@ import kotlinx.coroutines.launch
 fun PackingListScreen(onBack: () -> Unit) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val dataStore = remember { TripDataStore(context) }
+    val repository = remember { TripRepository(context) }
+    val tripId = "sample_trip_id"
 
-    // Keeping the sample data for UI as requested, but we will save to DataStore
     var items by remember {
         mutableStateOf(
-            listOf(
-                PackingItem(1, "Passport", "Documents", true),
-                PackingItem(2, "Travel Insurance", "Documents", true),
-                PackingItem(3, "JR Rail Pass", "Documents", false),
-                PackingItem(4, "T-shirts (5)", "Clothes", false),
-                PackingItem(5, "Jeans (2)", "Clothes", false),
-                PackingItem(6, "Jacket", "Clothes", true)
-            )
+            samplePackingList.toMutableList()
         )
     }
 
-    var showDialog by remember { mutableStateOf(false) }
-    var newItemName by remember { mutableStateOf("") }
-    var newItemCategory by remember { mutableStateOf("Documents") }
+    var selectedCategory by rememberSaveable { mutableStateOf<BudgetCategory?>(null) }
+    var itemName by rememberSaveable { mutableStateOf("") }
+
+
+    var showAddItem by remember { mutableStateOf(false) }
 
     fun toggle(id: Int) {
         items = items.map {
             if (it.id == id) it.copy(checked = !it.checked) else it
-        }
+        }.toMutableList()
+        
         scope.launch {
-            // Save toggle state to DataStore (for sample trip id)
-            dataStore.togglePackingItem("sample_trip_id", id)
+            repository.togglePackingItem(tripId, id)
         }
     }
 
     fun addItem() {
-        if (newItemName.isNotBlank()) {
+        if (itemName.isNotBlank()) {
             val newId = (items.maxOfOrNull { it.id } ?: 0) + 1
+            val categoryLabel = selectedCategory?.label ?: "Other"
             val newItem = PackingItem(
                 id = newId,
-                name = newItemName,
-                category = newItemCategory,
+                name = itemName,
+                category = categoryLabel,
                 checked = false
             )
-            items = items + newItem
-            
+            items.add(newItem)
+
             scope.launch {
-                dataStore.addPackingItem("sample_trip_id", newItem)
+                repository.addPackingItem(tripId, newItem)
             }
-            
-            newItemName = ""
-            newItemCategory = "Documents"
-            showDialog = false
+
+            itemName = ""
+            selectedCategory = null
+            showAddItem = false
         }
     }
 
@@ -98,10 +96,14 @@ fun PackingListScreen(onBack: () -> Unit) {
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { showDialog = true },
-                containerColor = MaterialTheme.colorScheme.tertiary
+                onClick = { showAddItem = true },
+                containerColor = MaterialTheme.colorScheme.primary
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Add item", tint = MaterialTheme.colorScheme.onTertiary)
+                Icon(
+                    Icons.Default.Add,
+                    contentDescription = "Add item",
+                    tint = MaterialTheme.colorScheme.onPrimary
+                )
             }
         }
     ) { padding ->
@@ -134,65 +136,144 @@ fun PackingListScreen(onBack: () -> Unit) {
 
             Spacer(Modifier.height(16.dp))
 
-            if (items.any { it.category == "Documents" }) {
-                CategorySection(
-                    "Documents",
-                    items.filter { it.category == "Documents" },
-                    ::toggle
-                )
-            }
-
-            if (items.any { it.category == "Clothes" }) {
-                CategorySection(
-                    "Clothes",
-                    items.filter { it.category == "Clothes" },
-                    ::toggle
-                )
+            val categories = listOf("Documents", "Clothes", "Electronics", "Personal", "Other")
+            categories.forEach { category ->
+                val categoryItems = items.filter { it.category == category }
+                if (categoryItems.isNotEmpty()) {
+                    CategorySection(
+                        category,
+                        categoryItems,
+                        ::toggle,
+                        onDelete = { itemId ->
+                            items.removeAll { it.id == itemId }
+                            scope.launch {
+                                repository.deletePackingItem(tripId, itemId)
+                            }
+                        }
+                    )
+                }
             }
         }
     }
 
-    if (showDialog) {
-        AlertDialog(
-            onDismissRequest = { showDialog = false },
-            title = { Text("Add Item") },
-            text = {
-                Column {
-                    OutlinedTextField(
-                        value = newItemName,
-                        onValueChange = { newItemName = it },
-                        label = { Text("Item name") },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-
-                    Spacer(Modifier.height(12.dp))
-
-                    Text("Category")
-
-                    Spacer(Modifier.height(8.dp))
-
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        listOf("Documents", "Clothes").forEach { category ->
-                            FilterChip(
-                                selected = newItemCategory == category,
-                                onClick = { newItemCategory = category },
-                                label = { Text(category) }
+    if (showAddItem) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.50f))
+                .clickable { showAddItem = false }
+        ) {
+            Card(
+                modifier = Modifier
+                    .align(androidx.compose.ui.Alignment.BottomCenter)
+                    .fillMaxWidth()
+                    .clickable(enabled = false) { },
+                shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+            ) {
+                Column(
+                    modifier = Modifier.padding(24.dp),
+                    verticalArrangement = Arrangement.spacedBy(18.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+                    ) {
+                        Text(
+                            "Add Item",
+                            style = MaterialTheme.typography.headlineSmall,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        IconButton(onClick = { showAddItem = false }) {
+                            Icon(
+                                Icons.Default.Close,
+                                contentDescription = "Close",
+                                tint = MaterialTheme.colorScheme.onSurface
                             )
                         }
                     }
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = { addItem() }) {
-                    Text("Add")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showDialog = false }) {
-                    Text("Cancel")
+
+                    OutlinedTextField(
+                        value = itemName,
+                        onValueChange = { itemName = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        label = { Text("Item Name") },
+                        placeholder = { Text("e.g., Baggy Pants") },
+                        shape = RoundedCornerShape(14.dp)
+                    )
+
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Text(
+                            "Category",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(10.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Box(modifier = Modifier.weight(1f)) {
+                                CategoryButton(
+                                    label = "Clothes",
+                                    icon = Icons.Default.DryCleaning,
+                                    selected = selectedCategory == BudgetCategory.TRANSPORT, 
+                                    onClick = { selectedCategory = BudgetCategory.TRANSPORT }
+                                )
+                            }
+                            Box(modifier = Modifier.weight(1f)) {
+                                CategoryButton(
+                                    label = "Documents",
+                                    icon = Icons.Default.Folder,
+                                    selected = selectedCategory == BudgetCategory.ACCOMMODATION,
+                                    onClick = { selectedCategory = BudgetCategory.ACCOMMODATION }
+                                )
+                            }
+                            Box(modifier = Modifier.weight(1f)) {
+                                CategoryButton(
+                                    label = "Electronics",
+                                    icon = Icons.Default.Smartphone,
+                                    selected = selectedCategory == BudgetCategory.FOOD,
+                                    onClick = { selectedCategory = BudgetCategory.FOOD }
+                                )
+                            }
+                        }
+
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(10.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Box(modifier = Modifier.weight(1f)) {
+                                CategoryButton(
+                                    label = "Personal",
+                                    icon = Icons.Default.Person,
+                                    selected = selectedCategory == BudgetCategory.ACTIVITIES,
+                                    onClick = { selectedCategory = BudgetCategory.ACTIVITIES }
+                                )
+                            }
+                            Box(modifier = Modifier.weight(1f)) {
+                                CategoryButton(
+                                    label = "Other",
+                                    icon = Icons.Default.Category,
+                                    selected = selectedCategory == BudgetCategory.OTHER,
+                                    onClick = { selectedCategory = BudgetCategory.OTHER }
+                                )
+                            }
+                            Spacer(modifier = Modifier.weight(1f))
+                        }
+                    }
+
+                    Button(
+                        onClick = { addItem() },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                    ) {
+                        Text("Add Item", color = MaterialTheme.colorScheme.onPrimary)
+                    }
                 }
             }
-        )
+        }
     }
 }
 
@@ -200,7 +281,8 @@ fun PackingListScreen(onBack: () -> Unit) {
 fun CategorySection(
     title: String,
     items: List<PackingItem>,
-    toggle: (Int) -> Unit
+    toggle: (Int) -> Unit,
+    onDelete: (Int) -> Unit = {}
 ) {
     Column(
         modifier = Modifier
@@ -243,15 +325,29 @@ fun CategorySection(
 
                 Spacer(Modifier.width(12.dp))
 
-                Text(item.name, color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.weight(1f))
-                
+                Text(
+                    item.name,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.weight(1f)
+                )
+
                 Row {
-                    IconButton(onClick = { /* TODO */ }, modifier = Modifier.size(24.dp)) {
-                        Icon(Icons.Default.Edit, contentDescription = "Edit", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
+                    IconButton(onClick = { /* TODO: Edit */ }, modifier = Modifier.size(24.dp)) {
+                        Icon(
+                            Icons.Default.Edit,
+                            contentDescription = "Edit",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(18.dp)
+                        )
                     }
                     Spacer(Modifier.width(8.dp))
-                    IconButton(onClick = { /* TODO */ }, modifier = Modifier.size(24.dp)) {
-                        Icon(Icons.Default.Delete, contentDescription = "Delete", tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(18.dp))
+                    IconButton(onClick = { onDelete(item.id) }, modifier = Modifier.size(24.dp)) {
+                        Icon(
+                            Icons.Default.Delete,
+                            contentDescription = "Delete",
+                            tint = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.size(18.dp)
+                        )
                     }
                 }
             }

@@ -53,6 +53,20 @@ class TripDataStore(private val context: Context) {
         updateTrip(tripId) { it.copy(expenses = it.expenses + expense) }
     }
 
+    suspend fun updateExpense(tripId: String, expense: ExpenseItem) {
+        updateTrip(tripId) { trip ->
+            trip.copy(expenses = trip.expenses.map { 
+                if (it.id == expense.id) expense else it 
+            })
+        }
+    }
+
+    suspend fun deleteExpense(tripId: String, expenseId: String) {
+        updateTrip(tripId) { trip ->
+            trip.copy(expenses = trip.expenses.filter { it.id != expenseId })
+        }
+    }
+
     suspend fun addActivity(tripId: String, day: Int, activity: ActivityItem) {
         updateTrip(tripId) { trip ->
             val newItinerary = trip.itinerary.toMutableList()
@@ -61,10 +75,27 @@ class TripDataStore(private val context: Context) {
                 val currentDay = newItinerary[dayIndex]
                 newItinerary[dayIndex] = currentDay.copy(activities = currentDay.activities + activity)
             } else {
-                // Should ideally handle creating new day if it doesn't exist
                 newItinerary.add(DayPlan(day, "Day $day", listOf(activity)))
             }
             trip.copy(itinerary = newItinerary)
+        }
+    }
+
+    suspend fun updateActivity(tripId: String, activity: ActivityItem) {
+        updateTrip(tripId) { trip ->
+            trip.copy(itinerary = trip.itinerary.map { day ->
+                day.copy(activities = day.activities.map { 
+                    if (it.id == activity.id) activity else it 
+                })
+            })
+        }
+    }
+
+    suspend fun deleteActivity(tripId: String, activityId: String) {
+        updateTrip(tripId) { trip ->
+            trip.copy(itinerary = trip.itinerary.map { day ->
+                day.copy(activities = day.activities.filter { it.id != activityId })
+            })
         }
     }
 
@@ -72,11 +103,25 @@ class TripDataStore(private val context: Context) {
         updateTrip(tripId) { it.copy(packingList = it.packingList + item) }
     }
     
+    suspend fun updatePackingItem(tripId: String, item: PackingItem) {
+        updateTrip(tripId) { trip ->
+            trip.copy(packingList = trip.packingList.map { 
+                if (it.id == item.id) item else it 
+            })
+        }
+    }
+
     suspend fun togglePackingItem(tripId: String, itemId: Int) {
         updateTrip(tripId) { trip ->
             trip.copy(packingList = trip.packingList.map { 
                 if (it.id == itemId) it.copy(checked = !it.checked) else it 
             })
+        }
+    }
+
+    suspend fun deletePackingItem(tripId: String, itemId: Int) {
+        updateTrip(tripId) { trip ->
+            trip.copy(packingList = trip.packingList.filter { it.id != itemId })
         }
     }
 
