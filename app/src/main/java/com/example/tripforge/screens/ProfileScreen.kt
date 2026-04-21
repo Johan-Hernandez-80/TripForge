@@ -2,9 +2,12 @@ package com.example.tripforge.screens
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.*
@@ -13,34 +16,24 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.vector.ImageVector
 
 @Composable
 fun ProfileScreen(
     isDarkMode: Boolean = false,
     onDarkModeChange: (Boolean) -> Unit = {},
-    selectedTab: String? = null,
-    onSelectTab: ((String) -> Unit)? = null
 ) {
-    Scaffold(
-//        bottomBar = {
-//            if (selectedTab != null && onSelectTab != null) {
-//                Surface(
-//                    tonalElevation = 0.dp,
-//                    shadowElevation = 16.dp,
-//                    color = MaterialTheme.colorScheme.surface
-//                ) {
-//                    BottomNav(selected = selectedTab, onSelect = onSelectTab)
-//                }
-//            }
-//        }
-    ) { innerPadding ->
+    val scrollState = rememberScrollState()
+    
+    Scaffold { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
                 .background(MaterialTheme.colorScheme.background)
+                .verticalScroll(scrollState)
         ) {
 
             // Header
@@ -87,12 +80,12 @@ fun ProfileScreen(
                         Spacer(Modifier.width(16.dp))
 
                         Button(
-                            onClick = {
-                                //TODO: Handle login
-                            },
+                            onClick = { },
                             modifier = Modifier.weight(1f),
                             shape = RoundedCornerShape(12.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surface)
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.surface
+                            )
                         ) {
                             Text(
                                 "Login",
@@ -101,10 +94,10 @@ fun ProfileScreen(
                             )
                         }
 
+                        Spacer(Modifier.width(8.dp))
+
                         OutlinedButton(
-                            onClick = {
-                                //TODO: Handle sign up
-                            },
+                            onClick = { },
                             modifier = Modifier.weight(1f),
                             shape = RoundedCornerShape(12.dp),
                             border = BorderStroke(
@@ -133,8 +126,7 @@ fun ProfileScreen(
                 // Stats Card
                 Card(
                     shape = RoundedCornerShape(16.dp),
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+                    modifier = Modifier.fillMaxWidth()
                 ) {
                     Row(
                         modifier = Modifier
@@ -142,24 +134,9 @@ fun ProfileScreen(
                             .fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceEvenly
                     ) {
-                        StatItem(
-                            "3",
-                            "Total Trips",
-                            MaterialTheme.colorScheme.primary,
-                            Modifier.weight(1f)
-                        )
-                        StatItem(
-                            "1",
-                            "Completed",
-                            MaterialTheme.colorScheme.secondary,
-                            Modifier.weight(1f)
-                        )
-                        StatItem(
-                            "2",
-                            "Upcoming",
-                            MaterialTheme.colorScheme.tertiary,
-                            Modifier.weight(1f)
-                        )
+                        StatItem("3", "Total Trips", MaterialTheme.colorScheme.primary, Modifier.weight(1f))
+                        StatItem("1", "Completed", MaterialTheme.colorScheme.secondary, Modifier.weight(1f))
+                        StatItem("2", "Upcoming", MaterialTheme.colorScheme.tertiary, Modifier.weight(1f))
                     }
                 }
 
@@ -168,8 +145,7 @@ fun ProfileScreen(
                 // Spending Card
                 Card(
                     shape = RoundedCornerShape(16.dp),
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+                    modifier = Modifier.fillMaxWidth()
                 ) {
                     Row(
                         modifier = Modifier
@@ -188,8 +164,7 @@ fun ProfileScreen(
                             Text(
                                 "$4,300",
                                 style = MaterialTheme.typography.headlineSmall,
-                                fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.onSurface
+                                fontWeight = FontWeight.SemiBold
                             )
                         }
 
@@ -216,8 +191,7 @@ fun ProfileScreen(
                 // Dark Mode
                 Card(
                     shape = RoundedCornerShape(16.dp),
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+                    modifier = Modifier.fillMaxWidth()
                 ) {
                     Row(
                         modifier = Modifier
@@ -248,7 +222,7 @@ fun ProfileScreen(
                             Spacer(Modifier.width(12.dp))
 
                             Column {
-                                Text("Dark Mode", color = MaterialTheme.colorScheme.onSurface)
+                                Text("Dark Mode")
                                 Text(
                                     "Switch to dark theme",
                                     style = MaterialTheme.typography.bodySmall,
@@ -266,64 +240,136 @@ fun ProfileScreen(
 
                 Spacer(Modifier.height(16.dp))
 
-                // Preferences
+                // Settings Card
                 Card(
                     shape = RoundedCornerShape(16.dp),
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    Row(
-                        modifier = Modifier
-                            .padding(16.dp)
-                            .fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
+                    Column {
 
-                        Row(verticalAlignment = Alignment.CenterVertically) {
+                        SettingsItem(
+                            icon = Icons.Default.Public,
+                            iconTint = MaterialTheme.colorScheme.primary,
+                            title = "Travel Preferences",
+                            subtitle = "Currencies, units, languages",
+                            onClick = { }
+                        )
 
-                            Box(
-                                modifier = Modifier
-                                    .size(40.dp)
-                                    .background(
-                                        MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-                                        CircleShape
-                                    ),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    Icons.Default.Public,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary
-                                )
-                            }
+                        HorizontalDivider()
 
-                            Spacer(Modifier.width(12.dp))
+                        SettingsItem(
+                            icon = Icons.Default.Notifications,
+                            iconTint = MaterialTheme.colorScheme.primary,
+                            title = "Notifications",
+                            subtitle = "Reminders, alerts, updates",
+                            onClick = { }
+                        )
 
-                            Column {
-                                Text(
-                                    "Travel Preferences",
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                                Text(
-                                    "Currencies, units, languages",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                        }
+                        HorizontalDivider()
 
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowRight,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurface
+                        SettingsItem(
+                            icon = Icons.Default.Security,
+                            iconTint = MaterialTheme.colorScheme.primary,
+                            title = "Privacy & Security",
+                            subtitle = "Password, 2FA, data",
+                            onClick = { }
+                        )
+
+                        HorizontalDivider()
+
+                        SettingsItem(
+                            icon = Icons.Default.Settings,
+                            iconTint = MaterialTheme.colorScheme.primary,
+                            title = "App Settings",
+                            subtitle = "Theme, cache, about",
+                            onClick = { }
                         )
                     }
                 }
 
-                Spacer(Modifier.height(24.dp))
+                Spacer(Modifier.height(16.dp))
+
+                // Logout
+                Card(
+                    shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.error.copy(alpha = 0.1f)
+                    ),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.3f))
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { }
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.Logout,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.error
+                        )
+
+                        Spacer(Modifier.width(12.dp))
+
+                        Text(
+                            "Log Out",
+                            color = MaterialTheme.colorScheme.error,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+                }
+
+                Spacer(Modifier.height(48.dp)) // Added more bottom spacing
             }
         }
+    }
+}
+
+@Composable
+fun SettingsItem(
+    icon: ImageVector,
+    iconTint: Color,
+    title: String,
+    subtitle: String,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() }
+            .padding(16.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .background(iconTint.copy(alpha = 0.1f), CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(icon, contentDescription = null, tint = iconTint)
+            }
+
+            Spacer(Modifier.width(12.dp))
+
+            Column {
+                Text(title)
+                Text(
+                    subtitle,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+
+        Icon(
+            Icons.AutoMirrored.Filled.ArrowRight,
+            contentDescription = null
+        )
     }
 }
 
