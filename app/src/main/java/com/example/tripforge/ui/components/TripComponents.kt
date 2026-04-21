@@ -1,5 +1,6 @@
 package com.example.tripforge.ui.components
 
+import android.app.TimePickerDialog
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -17,63 +18,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.input.KeyboardType
 import com.example.tripforge.model.*
-
-@Composable
-fun ScreenHeader(
-    title: String,
-    subtitle: String? = null,
-    onBack: (() -> Unit)? = null
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        if (onBack != null) {
-            IconButton(
-                onClick = onBack,
-                modifier = Modifier
-                    .size(40.dp)
-                    .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(50))
-            ) {
-                Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.onSurface)
-            }
-            Spacer(modifier = Modifier.width(12.dp))
-        }
-
-        Column {
-            Text(
-                title,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onBackground
-            )
-            if (!subtitle.isNullOrBlank()) {
-                Text(subtitle, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-        }
-    }
-}
-
-@Composable
-fun SectionHeader(
-    title: String,
-    actionText: String? = null,
-    onAction: (() -> Unit)? = null
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(title, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onBackground)
-        if (actionText != null && onAction != null) {
-            TextButton(onClick = onAction, contentPadding = PaddingValues(0.dp)) {
-                Text(actionText, color = MaterialTheme.colorScheme.primary)
-            }
-        }
-    }
-}
+import java.text.DateFormat
+import java.util.Date
 
 @Composable
 fun ProgressBar(
@@ -150,8 +105,10 @@ fun TripTabChip(
     selected: Boolean,
     onClick: () -> Unit
 ) {
-    val background = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface
-    val contentColor = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
+    val background =
+        if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface
+    val contentColor =
+        if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
 
     Button(
         onClick = onClick,
@@ -207,7 +164,11 @@ fun TripPreviewCard(
                         .align(Alignment.BottomStart)
                         .padding(16.dp)
                 ) {
-                    Text(dateRange, color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.85f), fontSize = 12.sp)
+                    Text(
+                        dateRange,
+                        color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.85f),
+                        fontSize = 12.sp
+                    )
                     Text(
                         title,
                         color = MaterialTheme.colorScheme.onPrimary,
@@ -223,7 +184,11 @@ fun TripPreviewCard(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(location, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(
+                        location,
+                        fontSize = 13.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                     if (budgetText != null) {
                         Text(
                             budgetText,
@@ -238,16 +203,28 @@ fun TripPreviewCard(
                     Spacer(modifier = Modifier.height(10.dp))
                     ProgressBar(progress = progress, barColor = MaterialTheme.colorScheme.secondary)
                     Spacer(modifier = Modifier.height(6.dp))
-                    Text(budgetSpentText, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(
+                        budgetSpentText,
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
-                
+
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                     IconButton(onClick = onEdit) {
-                        Icon(Icons.Default.Edit, contentDescription = "Edit", tint = MaterialTheme.colorScheme.primary)
+                        Icon(
+                            Icons.Default.Edit,
+                            contentDescription = "Edit",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
                     }
                     IconButton(onClick = onDelete) {
-                        Icon(Icons.Default.Delete, contentDescription = "Delete", tint = MaterialTheme.colorScheme.error)
+                        Icon(
+                            Icons.Default.Delete,
+                            contentDescription = "Delete",
+                            tint = MaterialTheme.colorScheme.error
+                        )
                     }
                 }
             }
@@ -279,14 +256,28 @@ fun TripBulletItem(
         Spacer(modifier = Modifier.width(12.dp))
 
         Column(modifier = Modifier.weight(1f)) {
-            Text(title, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
+            Text(
+                title,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurface
+            )
             Text(location, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
 
         Column(horizontalAlignment = Alignment.End) {
-            Text(time, fontSize = 13.sp, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.primary)
+            Text(
+                time,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.primary
+            )
             if (!dateLabel.isNullOrBlank()) {
-                Text(dateLabel, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(
+                    dateLabel,
+                    fontSize = 11.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
     }
@@ -310,7 +301,11 @@ fun TripDaySection(
                     .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(50)),
                 contentAlignment = Alignment.Center
             ) {
-                Text(day.toString(), color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.SemiBold)
+                Text(
+                    day.toString(),
+                    color = MaterialTheme.colorScheme.onPrimary,
+                    fontWeight = FontWeight.SemiBold
+                )
             }
             Spacer(modifier = Modifier.width(12.dp))
             Text(
@@ -361,7 +356,7 @@ fun TripActivityCard(
                     color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.weight(1f)
                 )
-                
+
                 Row {
                     if (activity.time.isNotBlank()) {
                         Text(
@@ -376,24 +371,36 @@ fun TripActivityCard(
                         Icons.Default.Edit,
                         contentDescription = "Edit",
                         tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(18.dp).clickable { onEdit() }
+                        modifier = Modifier
+                            .size(18.dp)
+                            .clickable { onEdit() }
                     )
                     Spacer(Modifier.width(8.dp))
                     Icon(
                         Icons.Default.Delete,
                         contentDescription = "Delete",
                         tint = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.size(18.dp).clickable { onDelete() }
+                        modifier = Modifier
+                            .size(18.dp)
+                            .clickable { onDelete() }
                     )
                 }
             }
 
             Spacer(modifier = Modifier.height(6.dp))
-            Text("Location: ${activity.location}", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(
+                "Location: ${activity.location}",
+                fontSize = 13.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
 
             if (activity.description.isNotBlank()) {
                 Spacer(modifier = Modifier.height(6.dp))
-                Text(activity.description, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(
+                    activity.description,
+                    fontSize = 13.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
 
             if (activity.cost != null) {
@@ -410,49 +417,15 @@ fun TripActivityCard(
 }
 
 @Composable
-fun LabeledField(
-    label: String,
-    value: String,
-    onValueChange: (String) -> Unit,
-    placeholder: String,
-    leadingIcon: ImageVector? = null,
-    singleLine: Boolean = true,
-    modifier: Modifier = Modifier
-) {
-    Column(modifier = modifier) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            if (leadingIcon != null) {
-                Icon(leadingIcon, contentDescription = null, tint = MaterialTheme.colorScheme.onSurface)
-                Spacer(modifier = Modifier.width(8.dp))
-            }
-            Text(label, fontSize = 13.sp, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        OutlinedTextField(
-            value = value,
-            onValueChange = onValueChange,
-            placeholder = { Text(placeholder) },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = singleLine,
-            shape = RoundedCornerShape(14.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                unfocusedBorderColor = MaterialTheme.colorScheme.outline
-            )
-        )
-    }
-}
-
-@Composable
 fun CategoryChip(
     label: String,
     selected: Boolean,
     onClick: () -> Unit
 ) {
-    val borderColor = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
-    val backgroundColor = if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface
+    val borderColor =
+        if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
+    val backgroundColor =
+        if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface
 
     Card(
         modifier = Modifier
@@ -462,8 +435,16 @@ fun CategoryChip(
         border = BorderStroke(1.dp, borderColor),
         colors = CardDefaults.cardColors(containerColor = backgroundColor)
     ) {
-        Box(modifier = Modifier.fillMaxWidth().padding(vertical = 14.dp), contentAlignment = Alignment.Center) {
-            Text(label, color = if (selected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface)
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 14.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                label,
+                color = if (selected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
+            )
         }
     }
 }
@@ -477,7 +458,10 @@ fun ExpenseSummaryRow(
     backgroundTint: Color = MaterialTheme.colorScheme.primaryContainer,
     onDelete: () -> Unit = {}
 ) {
-    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 8.dp)) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.padding(vertical = 8.dp)
+    ) {
         Box(
             modifier = Modifier
                 .size(40.dp)
@@ -488,16 +472,28 @@ fun ExpenseSummaryRow(
         }
         Spacer(modifier = Modifier.width(12.dp))
         Column(modifier = Modifier.weight(1f)) {
-            Text(title, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
+            Text(
+                title,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurface
+            )
         }
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(amount, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
+            Text(
+                amount,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
             Spacer(Modifier.width(8.dp))
             Icon(
                 Icons.Default.Delete,
                 contentDescription = "Delete",
                 tint = MaterialTheme.colorScheme.error,
-                modifier = Modifier.size(18.dp).clickable { onDelete() }
+                modifier = Modifier
+                    .size(18.dp)
+                    .clickable { onDelete() }
             )
         }
     }
@@ -510,8 +506,10 @@ fun CategoryButton(
     selected: Boolean,
     onClick: () -> Unit
 ) {
-    val borderColor = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
-    val background = if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface
+    val borderColor =
+        if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
+    val background =
+        if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface
 
     Button(
         onClick = onClick,
@@ -537,3 +535,5 @@ fun CategoryButton(
         }
     }
 }
+
+

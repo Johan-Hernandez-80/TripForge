@@ -1,4 +1,4 @@
-package com.example.tripforge
+package com.example.tripforge.screens
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -11,81 +11,99 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
+import com.example.tripforge.R
 import com.example.tripforge.ui.components.*
 
 @Composable
-fun HomeScreen(navController: NavController? = null) {
+fun HomeScreen(
+    onNewTrip: () -> Unit,
+    onViewAll: () -> Unit,
+    onOpenDetails: () -> Unit,
+    selectedTab: String,
+    onSelectTab: (String) -> Unit
+) {
     val scrollState = rememberScrollState()
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-    ) {
-        Column(
+    Scaffold(
+//        bottomBar = {
+//            Surface(
+//                tonalElevation = 0.dp,
+//                shadowElevation = 16.dp,
+//                color = MaterialTheme.colorScheme.surface
+//            ) {
+//                BottomNav(selected = selectedTab, onSelect = onSelectTab)
+//            }
+//        }
+    ) { innerPadding ->
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(scrollState)
+                .padding(innerPadding)
+                .background(MaterialTheme.colorScheme.background)
         ) {
-            HeaderSection(
-                onNewTrip = { navController?.navigate("add_trip") },
-                onViewAll = { navController?.navigate("trips") }
-            )
-
             Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 24.dp)
+                    .fillMaxSize()
+                    .verticalScroll(scrollState)
             ) {
-                Spacer(modifier = Modifier.height(24.dp))
-
-                SectionHeader(title = "Featured Trip")
-                Box(modifier = Modifier.clickable { navController?.navigate("trip_details") }) {
-                    FeaturedTripCard()
-                }
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                SectionHeader(
-                    title = "Recent Trips",
-                    hasSeeAll = true,
-                    onSeeAll = { navController?.navigate("trips") }
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                    TripCardBig(
-                        "Tokyo Adventure",
-                        "Tokyo, Japan",
-                        R.drawable.tokyo,
-                        Modifier.weight(1f).clickable { navController?.navigate("trip_details") }
-                    )
-                    TripCardBig(
-                        "Paris Romance",
-                        "Paris, France",
-                        R.drawable.paris,
-                        Modifier.weight(1f).clickable { navController?.navigate("trip_details") }
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(32.dp))
-
-                Text(
-                    text = "Explore Destinations",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onBackground
+                HeaderSection(
+                    onNewTrip = onNewTrip,
+                    onViewAll = onViewAll
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
-                TripCardLong("Santorini, Greece", "Sunsets and white architecture", R.drawable.tokyo)
-                Spacer(modifier = Modifier.height(12.dp))
-                TripCardLong("Rome, Italy", "History and amazing food", R.drawable.paris)
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp)
+                ) {
+                    Spacer(modifier = Modifier.height(24.dp))
 
-                Spacer(modifier = Modifier.height(32.dp))
+                    SectionHeader(title = "Featured Trip")
+                    Box(modifier = Modifier.clickable { onOpenDetails() }) {
+                        FeaturedTripCard()
+                    }
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    SectionHeader(
+                        title = "Recent Trips",
+                        hasSeeAll = true,
+                        onSeeAll = onViewAll
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                        TripCardBig(
+                            "Tokyo Adventure",
+                            "Tokyo, Japan",
+                            R.drawable.tokyo,
+                            Modifier.weight(1f).clickable { onOpenDetails() }
+                        )
+                        TripCardBig(
+                            "Paris Romance",
+                            "Paris, France",
+                            R.drawable.paris,
+                            Modifier.weight(1f).clickable { onOpenDetails() }
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(32.dp))
+
+                    Text(
+                        text = "Explore Destinations",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+                    TripCardLong("Santorini, Greece", "Sunsets and white architecture", R.drawable.tokyo)
+                    Spacer(modifier = Modifier.height(12.dp))
+                    TripCardLong("Rome, Italy", "History and amazing food", R.drawable.paris)
+
+                    Spacer(modifier = Modifier.height(32.dp))
+                }
             }
         }
     }

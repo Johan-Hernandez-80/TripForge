@@ -1,4 +1,4 @@
-package com.example.tripforge
+package com.example.tripforge.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -9,8 +9,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalContext
 import com.example.tripforge.data.TripDataStore
@@ -21,6 +21,7 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun ItineraryScreen(
+    tripId: String,
     onBack: () -> Unit = {},
     onAddActivity: () -> Unit = {}
 ) {
@@ -78,7 +79,7 @@ fun ItineraryScreen(
             onClick = onAddActivity,
             containerColor = MaterialTheme.colorScheme.primary,
             modifier = Modifier
-                .align(androidx.compose.ui.Alignment.BottomEnd)
+                .align(Alignment.BottomEnd)
                 .padding(24.dp)
         ) {
             Icon(Icons.Default.Add, contentDescription = "Add activity", tint = MaterialTheme.colorScheme.onPrimary)

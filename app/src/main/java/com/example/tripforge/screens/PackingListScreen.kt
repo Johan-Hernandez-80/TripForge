@@ -1,4 +1,4 @@
-package com.example.tripforge
+package com.example.tripforge.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -11,7 +11,9 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.*
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.Color
@@ -26,11 +28,14 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PackingListScreen(onBack: () -> Unit) {
+fun PackingListScreen(
+    tripId: String,
+    onBack: () -> Unit
+) {
+
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val repository = remember { TripRepository(context) }
-    val tripId = "sample_trip_id"
 
     var items by remember {
         mutableStateOf(
@@ -48,7 +53,7 @@ fun PackingListScreen(onBack: () -> Unit) {
         items = items.map {
             if (it.id == id) it.copy(checked = !it.checked) else it
         }.toMutableList()
-        
+
         scope.launch {
             repository.togglePackingItem(tripId, id)
         }
@@ -165,7 +170,7 @@ fun PackingListScreen(onBack: () -> Unit) {
         ) {
             Card(
                 modifier = Modifier
-                    .align(androidx.compose.ui.Alignment.BottomCenter)
+                    .align(Alignment.BottomCenter)
                     .fillMaxWidth()
                     .clickable(enabled = false) { },
                 shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
@@ -178,7 +183,7 @@ fun PackingListScreen(onBack: () -> Unit) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
                             "Add Item",
@@ -217,7 +222,7 @@ fun PackingListScreen(onBack: () -> Unit) {
                                 CategoryButton(
                                     label = "Clothes",
                                     icon = Icons.Default.DryCleaning,
-                                    selected = selectedCategory == BudgetCategory.TRANSPORT, 
+                                    selected = selectedCategory == BudgetCategory.TRANSPORT,
                                     onClick = { selectedCategory = BudgetCategory.TRANSPORT }
                                 )
                             }

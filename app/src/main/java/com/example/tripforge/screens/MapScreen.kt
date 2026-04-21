@@ -1,4 +1,4 @@
-package com.example.tripforge
+package com.example.tripforge.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -9,7 +9,6 @@ import androidx.compose.ui.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.Alignment
-import com.example.tripforge.ui.components.BottomNav
 
 data class Marker(
     val id: Int,
@@ -32,17 +31,17 @@ fun MapScreen(
     )
 
     Scaffold(
-        bottomBar = {
-            if (selectedTab != null && onSelectTab != null) {
-                Surface(
-                    tonalElevation = 0.dp,
-                    shadowElevation = 16.dp,
-                    color = MaterialTheme.colorScheme.surface
-                ) {
-                    BottomNav(selected = selectedTab, onSelect = onSelectTab)
-                }
-            }
-        }
+//        bottomBar = {
+//            if (selectedTab != null && onSelectTab != null) {
+//                Surface(
+//                    tonalElevation = 0.dp,
+//                    shadowElevation = 16.dp,
+//                    color = MaterialTheme.colorScheme.surface
+//                ) {
+//                    BottomNav(selected = selectedTab, onSelect = onSelectTab)
+//                }
+//            }
+//        }
     ) { innerPadding ->
         Column(
             modifier = Modifier

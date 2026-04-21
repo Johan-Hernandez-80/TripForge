@@ -1,5 +1,6 @@
-package com.example.tripforge
+package com.example.tripforge.screens
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -14,7 +15,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.text.font.FontWeight
-import com.example.tripforge.ui.components.BottomNav
 
 @Composable
 fun ProfileScreen(
@@ -24,17 +24,17 @@ fun ProfileScreen(
     onSelectTab: ((String) -> Unit)? = null
 ) {
     Scaffold(
-        bottomBar = {
-            if (selectedTab != null && onSelectTab != null) {
-                Surface(
-                    tonalElevation = 0.dp,
-                    shadowElevation = 16.dp,
-                    color = MaterialTheme.colorScheme.surface
-                ) {
-                    BottomNav(selected = selectedTab, onSelect = onSelectTab)
-                }
-            }
-        }
+//        bottomBar = {
+//            if (selectedTab != null && onSelectTab != null) {
+//                Surface(
+//                    tonalElevation = 0.dp,
+//                    shadowElevation = 16.dp,
+//                    color = MaterialTheme.colorScheme.surface
+//                ) {
+//                    BottomNav(selected = selectedTab, onSelect = onSelectTab)
+//                }
+//            }
+//        }
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -71,11 +71,14 @@ fun ProfileScreen(
                         Box(
                             modifier = Modifier
                                 .size(64.dp)
-                                .background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f), CircleShape),
+                                .background(
+                                    MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f),
+                                    CircleShape
+                                ),
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                "A",
+                                "?",
                                 color = MaterialTheme.colorScheme.onPrimary,
                                 style = MaterialTheme.typography.headlineSmall
                             )
@@ -83,28 +86,37 @@ fun ProfileScreen(
 
                         Spacer(Modifier.width(16.dp))
 
-                        Column {
+                        Button(
+                            onClick = {
+                                //TODO: Handle login
+                            },
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surface)
+                        ) {
                             Text(
-                                "Alex Johnson",
-                                color = MaterialTheme.colorScheme.onPrimary,
-                                style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.SemiBold
+                                "Login",
+                                color = MaterialTheme.colorScheme.primary,
+                                fontWeight = FontWeight.Bold
                             )
+                        }
 
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(
-                                    Icons.Default.Email,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onPrimary,
-                                    modifier = Modifier.size(16.dp)
-                                )
-                                Spacer(Modifier.width(6.dp))
-                                Text(
-                                    "alex@example.com",
-                                    color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.9f),
-                                    style = MaterialTheme.typography.bodySmall
-                                )
-                            }
+                        OutlinedButton(
+                            onClick = {
+                                //TODO: Handle sign up
+                            },
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(12.dp),
+                            border = BorderStroke(
+                                1.dp,
+                                MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.5f)
+                            )
+                        ) {
+                            Text(
+                                "Sign up",
+                                color = MaterialTheme.colorScheme.onPrimary,
+                                fontWeight = FontWeight.Bold
+                            )
                         }
                     }
 
@@ -125,12 +137,29 @@ fun ProfileScreen(
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
                 ) {
                     Row(
-                        modifier = Modifier.padding(16.dp).fillMaxWidth(),
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceEvenly
                     ) {
-                        StatItem("3", "Total Trips", MaterialTheme.colorScheme.primary, Modifier.weight(1f))
-                        StatItem("1", "Completed", MaterialTheme.colorScheme.secondary, Modifier.weight(1f))
-                        StatItem("2", "Upcoming", MaterialTheme.colorScheme.tertiary, Modifier.weight(1f))
+                        StatItem(
+                            "3",
+                            "Total Trips",
+                            MaterialTheme.colorScheme.primary,
+                            Modifier.weight(1f)
+                        )
+                        StatItem(
+                            "1",
+                            "Completed",
+                            MaterialTheme.colorScheme.secondary,
+                            Modifier.weight(1f)
+                        )
+                        StatItem(
+                            "2",
+                            "Upcoming",
+                            MaterialTheme.colorScheme.tertiary,
+                            Modifier.weight(1f)
+                        )
                     }
                 }
 
@@ -203,7 +232,10 @@ fun ProfileScreen(
                             Box(
                                 modifier = Modifier
                                     .size(40.dp)
-                                    .background(MaterialTheme.colorScheme.tertiary.copy(alpha = 0.1f), CircleShape),
+                                    .background(
+                                        MaterialTheme.colorScheme.tertiary.copy(alpha = 0.1f),
+                                        CircleShape
+                                    ),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
@@ -269,7 +301,10 @@ fun ProfileScreen(
                             Spacer(Modifier.width(12.dp))
 
                             Column {
-                                Text("Travel Preferences", color = MaterialTheme.colorScheme.onSurface)
+                                Text(
+                                    "Travel Preferences",
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
                                 Text(
                                     "Currencies, units, languages",
                                     style = MaterialTheme.typography.bodySmall,
@@ -304,6 +339,10 @@ fun StatItem(value: String, label: String, color: Color, modifier: Modifier = Mo
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.SemiBold
         )
-        Text(label, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(
+            label,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }

@@ -1,6 +1,7 @@
 package com.example.tripforge.model
 
 import kotlinx.serialization.Serializable
+import java.time.LocalDate
 
 enum class TripTab(val label: String) {
     ALL("All"),

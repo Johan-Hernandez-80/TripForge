@@ -7,11 +7,11 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.example.tripforge.model.*
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "trip_forge_prefs")
 
@@ -21,16 +21,14 @@ class TripDataStore(private val context: Context) {
         val TRIPS_KEY = stringPreferencesKey("trips_list")
     }
 
-    private val json = Json { 
-        ignoreUnknownKeys = true 
-        encodeDefaults = true
-    }
+    private val gson = Gson()
 
     val tripsFlow: Flow<List<TripSummary>> = context.dataStore.data
         .map { preferences ->
             val tripsJson = preferences[TRIPS_KEY] ?: "[]"
             try {
-                json.decodeFromString<List<TripSummary>>(tripsJson)
+                val type = object : TypeToken<List<TripSummary>>() {}.type
+                gson.fromJson(tripsJson, type)
             } catch (e: Exception) {
                 emptyList()
             }
@@ -45,7 +43,7 @@ class TripDataStore(private val context: Context) {
             } else {
                 currentTrips.add(trip)
             }
-            preferences[TRIPS_KEY] = json.encodeToString(currentTrips)
+            preferences[TRIPS_KEY] = gson.toJson(currentTrips)
         }
     }
 
@@ -131,7 +129,7 @@ class TripDataStore(private val context: Context) {
             val index = currentTrips.indexOfFirst { it.id == tripId }
             if (index != -1) {
                 currentTrips[index] = update(currentTrips[index])
-                preferences[TRIPS_KEY] = json.encodeToString(currentTrips)
+                preferences[TRIPS_KEY] = gson.toJson(currentTrips)
             }
         }
     }
@@ -140,7 +138,8 @@ class TripDataStore(private val context: Context) {
         val preferences = context.dataStore.data.first()
         val tripsJson = preferences[TRIPS_KEY] ?: "[]"
         return try {
-            json.decodeFromString<List<TripSummary>>(tripsJson)
+            val type = object : TypeToken<List<TripSummary>>() {}.type
+            gson.fromJson(tripsJson, type)
         } catch (e: Exception) {
             emptyList()
         }
@@ -150,7 +149,7 @@ class TripDataStore(private val context: Context) {
         context.dataStore.edit { preferences ->
             val currentTrips = getAllTrips().toMutableList()
             currentTrips.removeAll { it.id == tripId }
-            preferences[TRIPS_KEY] = json.encodeToString(currentTrips)
+            preferences[TRIPS_KEY] = gson.toJson(currentTrips)
         }
     }
 }

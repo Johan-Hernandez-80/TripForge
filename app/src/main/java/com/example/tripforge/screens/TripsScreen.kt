@@ -1,4 +1,4 @@
-package com.example.tripforge
+package com.example.tripforge.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -13,16 +13,14 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import com.example.tripforge.data.TripRepository
 import com.example.tripforge.model.TripSummary
-import com.example.tripforge.ui.components.BottomNav
 import kotlinx.coroutines.launch
 
 @Composable
 fun TripsScreen(
-    onTripClick: () -> Unit,
+    onTripClick: (TripSummary) -> Unit = {},
     onEditTrip: (TripSummary) -> Unit = {},
     selectedTab: String? = null,
     onSelectTab: ((String) -> Unit)? = null
@@ -36,17 +34,17 @@ fun TripsScreen(
     var activeTab by remember { mutableStateOf("All") }
 
     Scaffold(
-        bottomBar = {
-            if (selectedTab != null && onSelectTab != null) {
-                Surface(
-                    tonalElevation = 0.dp,
-                    shadowElevation = 16.dp,
-                    color = MaterialTheme.colorScheme.surface
-                ) {
-                    BottomNav(selected = selectedTab, onSelect = onSelectTab)
-                }
-            }
-        }
+//        bottomBar = {
+//            if (selectedTab != null && onSelectTab != null) {
+//                Surface(
+//                    tonalElevation = 0.dp,
+//                    shadowElevation = 16.dp,
+//                    color = MaterialTheme.colorScheme.surface
+//                ) {
+//                    BottomNav(selected = selectedTab, onSelect = onSelectTab)
+//                }
+//            }
+//        }
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -95,7 +93,7 @@ fun TripsScreen(
                 items(trips) { trip ->
                     TripCard(
                         trip = trip,
-                        onClick = onTripClick,
+                        onClick = { onTripClick(trip) },
                         onEdit = { onEditTrip(trip) },
                         onDelete = {
                             scope.launch {

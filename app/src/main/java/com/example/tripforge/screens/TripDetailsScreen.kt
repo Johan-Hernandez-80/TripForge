@@ -1,4 +1,4 @@
-package com.example.tripforge
+package com.example.tripforge.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -50,12 +50,24 @@ fun TripDetailsScreen(
                     .align(Alignment.BottomStart)
                     .padding(24.dp)
             ) {
-                Text(trip.title, color = MaterialTheme.colorScheme.onPrimary, style = MaterialTheme.typography.headlineMedium)
+                Text(
+                    trip.title,
+                    color = MaterialTheme.colorScheme.onPrimary,
+                    style = MaterialTheme.typography.headlineMedium
+                )
                 Spacer(modifier = Modifier.height(4.dp))
                 Row {
-                    Text(trip.location, color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.9f), style = MaterialTheme.typography.bodyMedium)
+                    Text(
+                        trip.location,
+                        color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.9f),
+                        style = MaterialTheme.typography.bodyMedium
+                    )
                     Spacer(modifier = Modifier.width(10.dp))
-                    Text(trip.startDate, color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.9f), style = MaterialTheme.typography.bodyMedium)
+                    Text(
+                        trip.startDate,
+                        color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.9f),
+                        style = MaterialTheme.typography.bodyMedium
+                    )
                 }
             }
 
@@ -69,23 +81,29 @@ fun TripDetailsScreen(
                     onClick = onBack,
                     modifier = Modifier
                         .size(40.dp)
-                        .background(Color.Black.copy(alpha = 0.30f), shape = MaterialTheme.shapes.large)
+                        .background(
+                            Color.Black.copy(alpha = 0.30f),
+                            shape = MaterialTheme.shapes.large
+                        )
                 ) {
                     Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.White)
                 }
-                
+
                 Row {
                     IconButton(
                         onClick = onEdit,
                         modifier = Modifier
                             .size(40.dp)
-                            .background(Color.Black.copy(alpha = 0.30f), shape = MaterialTheme.shapes.large)
+                            .background(
+                                Color.Black.copy(alpha = 0.30f),
+                                shape = MaterialTheme.shapes.large
+                            )
                     ) {
                         Icon(Icons.Default.Edit, contentDescription = "Edit", tint = Color.White)
                     }
                     Spacer(Modifier.width(8.dp))
                     IconButton(
-                        onClick = { 
+                        onClick = {
                             scope.launch {
                                 repository.deleteTrip(trip.id)
                                 onBack()
@@ -93,9 +111,16 @@ fun TripDetailsScreen(
                         },
                         modifier = Modifier
                             .size(40.dp)
-                            .background(Color.Black.copy(alpha = 0.30f), shape = MaterialTheme.shapes.large)
+                            .background(
+                                Color.Black.copy(alpha = 0.30f),
+                                shape = MaterialTheme.shapes.large
+                            )
                     ) {
-                        Icon(Icons.Default.Delete, contentDescription = "Delete", tint = Color.White)
+                        Icon(
+                            Icons.Default.Delete,
+                            contentDescription = "Delete",
+                            tint = Color.White
+                        )
                     }
                 }
             }
@@ -106,6 +131,7 @@ fun TripDetailsScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Card(
+                modifier = Modifier.fillMaxWidth(),
                 shape = MaterialTheme.shapes.large,
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
             ) {
@@ -116,15 +142,31 @@ fun TripDetailsScreen(
                     Box(
                         modifier = Modifier
                             .size(44.dp)
-                            .background(MaterialTheme.colorScheme.primaryContainer, shape = MaterialTheme.shapes.medium),
+                            .background(
+                                MaterialTheme.colorScheme.primaryContainer,
+                                shape = MaterialTheme.shapes.medium
+                            ),
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(Icons.Default.CalendarToday, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                        Icon(
+                            Icons.Default.CalendarToday,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary
+                        )
                     }
                     Spacer(modifier = Modifier.width(12.dp))
                     Column {
-                        Text("Travel Dates", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        Text("${trip.startDate} - ${trip.endDate}", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
+                        Text(
+                            "Travel Dates",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.height(5.dp))
+                        Text(
+                            "${trip.startDate} - ${trip.endDate}",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
                     }
                 }
             }
@@ -167,7 +209,11 @@ fun TripDetailsScreen(
                     Spacer(modifier = Modifier.height(12.dp))
 
                     if (trip.itinerary.isEmpty()) {
-                        Text("No activities planned yet.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(
+                            "No activities planned yet.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     } else {
                         trip.itinerary.firstOrNull()?.activities?.take(2)?.forEach { activity ->
                             TripBulletItem(

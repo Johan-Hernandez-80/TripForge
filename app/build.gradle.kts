@@ -56,14 +56,11 @@ dependencies {
     // --- Non-default (strings, latest stable-ish) ---
 
     implementation("androidx.compose.material:material-icons-extended")
-
     implementation("androidx.navigation:navigation-compose:2.8.7")
-
     implementation("androidx.datastore:datastore-preferences:1.1.3")
-
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
-
     implementation("com.google.code.gson:gson:2.11.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.5.0")
 
     // Testing (keep catalog or switch fully, your call)
     testImplementation(libs.junit)

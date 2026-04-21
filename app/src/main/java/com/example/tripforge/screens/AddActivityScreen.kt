@@ -1,4 +1,4 @@
-package com.example.tripforge
+package com.example.tripforge.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -15,25 +15,29 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalContext
 import com.example.tripforge.data.TripRepository
 import com.example.tripforge.model.ActivityItem
+import com.example.tripforge.ui.components.DateField
+import com.example.tripforge.ui.components.DatePickerField
 import com.example.tripforge.ui.components.LabeledField
+import com.example.tripforge.ui.components.MoneyField
 import com.example.tripforge.ui.components.ScreenHeader
+import com.example.tripforge.ui.components.TimeField
 import kotlinx.coroutines.launch
 import java.util.UUID
 
 @Composable
 fun AddActivityScreen(
+    tripId: String,
     onBack: () -> Unit = {},
     onSave: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val repository = remember { TripRepository(context) }
-    
+
     var activityName by rememberSaveable { mutableStateOf("") }
     var location by rememberSaveable { mutableStateOf("") }
     var date by rememberSaveable { mutableStateOf("") }
@@ -41,6 +45,7 @@ fun AddActivityScreen(
     var description by rememberSaveable { mutableStateOf("") }
     var cost by rememberSaveable { mutableStateOf("") }
 
+    var showStartDatePicker by rememberSaveable() { mutableStateOf(false) }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -71,25 +76,20 @@ fun AddActivityScreen(
             leadingIcon = Icons.Default.LocationOn
         )
 
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            LabeledField(
-                label = "Date",
-                value = date,
-                onValueChange = { date = it },
-                placeholder = "dd/mm/yyyy",
-                leadingIcon = Icons.Default.CalendarToday,
-                modifier = Modifier.weight(1f)
-            )
+        DatePickerField(
+            value = date,
+            label = "Date",
+            onDateSelected = { date = it },
+            modifier = Modifier.fillMaxWidth()
+        )
 
-            LabeledField(
-                label = "Time",
-                value = time,
-                onValueChange = { time = it },
-                placeholder = "--:--",
-                leadingIcon = Icons.Default.AccessTime,
-                modifier = Modifier.weight(1f)
-            )
-        }
+        TimeField(
+            value = time,
+            onTimeSelected = { time = it },
+            label = "Time",
+            modifier = Modifier.fillMaxWidth()
+        )
+
 
         LabeledField(
             label = "Description (optional)",
@@ -100,12 +100,11 @@ fun AddActivityScreen(
             singleLine = false
         )
 
-        LabeledField(
-            label = "Estimated Cost (optional)",
+        MoneyField(
             value = cost,
             onValueChange = { cost = it },
-            placeholder = "e.g., 50",
-            leadingIcon = Icons.Default.AttachMoney
+            modifier = Modifier.fillMaxWidth(),
+            label = "Estimated Cost (optional)"
         )
 
         Button(
