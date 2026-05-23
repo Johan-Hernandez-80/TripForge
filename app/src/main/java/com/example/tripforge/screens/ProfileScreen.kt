@@ -19,13 +19,29 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
+import com.example.tripforge.data.TripRepository
+import com.example.tripforge.model.TripStatus
+import kotlinx.coroutines.launch
 
 @Composable
 fun ProfileScreen(
     isDarkMode: Boolean = false,
     onDarkModeChange: (Boolean) -> Unit = {},
+    onNavigateToTravelPreferences: () -> Unit = {},
+    onNavigateToNotifications: () -> Unit = {},
+    onNavigateToPrivacy: () -> Unit = {},
+    onNavigateToAppSettings: () -> Unit = {}
 ) {
     val scrollState = rememberScrollState()
+    val context = LocalContext.current
+    val repository = remember { TripRepository(context) }
+    val trips by repository.trips.collectAsState(initial = emptyList())
+    
+    val totalTrips = trips.size
+    val completedTrips = trips.count { it.status == TripStatus.COMPLETE }
+    val upcomingTrips = trips.count { it.status == TripStatus.UPCOMING }
+    val totalSpending = trips.sumOf { it.budgetTotal }
     
     Scaffold { innerPadding ->
         Column(
@@ -134,9 +150,9 @@ fun ProfileScreen(
                             .fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceEvenly
                     ) {
-                        StatItem("3", "Total Trips", MaterialTheme.colorScheme.primary, Modifier.weight(1f))
-                        StatItem("1", "Completed", MaterialTheme.colorScheme.secondary, Modifier.weight(1f))
-                        StatItem("2", "Upcoming", MaterialTheme.colorScheme.tertiary, Modifier.weight(1f))
+                        StatItem(totalTrips.toString(), "Total Trips", MaterialTheme.colorScheme.primary, Modifier.weight(1f))
+                        StatItem(completedTrips.toString(), "Completed", MaterialTheme.colorScheme.secondary, Modifier.weight(1f))
+                        StatItem(upcomingTrips.toString(), "Upcoming", MaterialTheme.colorScheme.tertiary, Modifier.weight(1f))
                     }
                 }
 
@@ -162,7 +178,7 @@ fun ProfileScreen(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             Text(
-                                "$4,300",
+                                "$$totalSpending",
                                 style = MaterialTheme.typography.headlineSmall,
                                 fontWeight = FontWeight.SemiBold
                             )
@@ -252,7 +268,7 @@ fun ProfileScreen(
                             iconTint = MaterialTheme.colorScheme.primary,
                             title = "Travel Preferences",
                             subtitle = "Currencies, units, languages",
-                            onClick = { }
+                            onClick = onNavigateToTravelPreferences
                         )
 
                         HorizontalDivider()
@@ -262,7 +278,7 @@ fun ProfileScreen(
                             iconTint = MaterialTheme.colorScheme.primary,
                             title = "Notifications",
                             subtitle = "Reminders, alerts, updates",
-                            onClick = { }
+                            onClick = onNavigateToNotifications
                         )
 
                         HorizontalDivider()
@@ -272,7 +288,7 @@ fun ProfileScreen(
                             iconTint = MaterialTheme.colorScheme.primary,
                             title = "Privacy & Security",
                             subtitle = "Password, 2FA, data",
-                            onClick = { }
+                            onClick = onNavigateToPrivacy
                         )
 
                         HorizontalDivider()
@@ -282,7 +298,7 @@ fun ProfileScreen(
                             iconTint = MaterialTheme.colorScheme.primary,
                             title = "App Settings",
                             subtitle = "Theme, cache, about",
-                            onClick = { }
+                            onClick = onNavigateToAppSettings
                         )
                     }
                 }

@@ -9,11 +9,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import com.example.tripforge.data.TripRepository
 import com.example.tripforge.model.TripSummary
 import kotlinx.coroutines.launch
@@ -34,17 +36,6 @@ fun TripsScreen(
     var activeTab by remember { mutableStateOf("All") }
 
     Scaffold(
-//        bottomBar = {
-//            if (selectedTab != null && onSelectTab != null) {
-//                Surface(
-//                    tonalElevation = 0.dp,
-//                    shadowElevation = 16.dp,
-//                    color = MaterialTheme.colorScheme.surface
-//                ) {
-//                    BottomNav(selected = selectedTab, onSelect = onSelectTab)
-//                }
-//            }
-//        }
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -86,21 +77,44 @@ fun TripsScreen(
 
             Spacer(Modifier.height(16.dp))
 
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(bottom = 16.dp)
-            ) {
-                items(trips) { trip ->
-                    TripCard(
-                        trip = trip,
-                        onClick = { onTripClick(trip) },
-                        onEdit = { onEditTrip(trip) },
-                        onDelete = {
-                            scope.launch {
-                                repository.deleteTrip(trip.id)
+            if (trips.isEmpty()) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(
+                            Icons.Default.Info,
+                            contentDescription = null,
+                            modifier = Modifier.size(64.dp),
+                            tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+                        )
+                        Spacer(Modifier.height(16.dp))
+                        Text(
+                            "there are no trips yet",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(bottom = 16.dp)
+                ) {
+                    items(trips) { trip ->
+                        TripCard(
+                            trip = trip,
+                            onClick = { onTripClick(trip) },
+                            onEdit = { onEditTrip(trip) },
+                            onDelete = {
+                                scope.launch {
+                                    repository.deleteTrip(trip.id)
+                                }
                             }
-                        }
-                    )
+                        )
+                    }
                 }
             }
         }
