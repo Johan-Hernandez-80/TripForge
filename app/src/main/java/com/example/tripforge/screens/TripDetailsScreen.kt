@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalContext
 import com.example.tripforge.data.TripRepository
 import com.example.tripforge.model.TripSummary
+import com.example.tripforge.model.TripStatus
 import com.example.tripforge.ui.components.MetricCard
 import com.example.tripforge.ui.components.SectionHeader
 import com.example.tripforge.ui.components.TripBulletItem
@@ -32,6 +33,7 @@ fun TripDetailsScreen(
     val context = LocalContext.current
     val repository = remember { TripRepository(context) }
     val scope = rememberCoroutineScope()
+    var currentTrip by remember { mutableStateOf(trip) }
 
     Column(
         modifier = Modifier
@@ -45,51 +47,62 @@ fun TripDetailsScreen(
                 .height(240.dp)
                 .background(MaterialTheme.colorScheme.primary)
         ) {
+            IconButton(
+                onClick = onBack,
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .padding(8.dp)
+            ) {
+                Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.White)
+            }
+
             Column(
                 modifier = Modifier
                     .align(Alignment.BottomStart)
                     .padding(24.dp)
             ) {
                 Text(
-                    trip.title,
+                    text = currentTrip.title,
                     color = MaterialTheme.colorScheme.onPrimary,
                     style = MaterialTheme.typography.headlineMedium
                 )
                 Spacer(modifier = Modifier.height(4.dp))
-                Row {
+                Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        trip.location,
+                        text = currentTrip.location,
                         color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.9f),
                         style = MaterialTheme.typography.bodyMedium
                     )
                     Spacer(modifier = Modifier.width(10.dp))
                     Text(
-                        trip.startDate,
+                        text = currentTrip.startDate,
                         color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.9f),
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }
-            }
 
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(24.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                IconButton(
-                    onClick = onBack,
-                    modifier = Modifier
-                        .size(40.dp)
-                        .background(
-                            Color.Black.copy(alpha = 0.30f),
-                            shape = MaterialTheme.shapes.large
-                        )
-                ) {
-                    Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.White)
-                }
+                Spacer(modifier = Modifier.height(16.dp))
 
-                Row {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    if (currentTrip.status != TripStatus.COMPLETE) {
+                        IconButton(
+                            onClick = {
+                                scope.launch {
+                                    val updatedTrip = currentTrip.copy(status = TripStatus.COMPLETE)
+                                    repository.saveTrip(updatedTrip, isEdit = true)
+                                    currentTrip = updatedTrip
+                                }
+                            },
+                            modifier = Modifier
+                                .size(40.dp)
+                                .background(
+                                    Color.Black.copy(alpha = 0.30f),
+                                    shape = MaterialTheme.shapes.large
+                                )
+                        ) {
+                            Icon(Icons.Default.CheckCircle, contentDescription = "Mark Complete", tint = Color.White)
+                        }
+                    }
                     IconButton(
                         onClick = onEdit,
                         modifier = Modifier
@@ -101,11 +114,10 @@ fun TripDetailsScreen(
                     ) {
                         Icon(Icons.Default.Edit, contentDescription = "Edit", tint = Color.White)
                     }
-                    Spacer(Modifier.width(8.dp))
                     IconButton(
                         onClick = {
                             scope.launch {
-                                repository.deleteTrip(trip.id)
+                                repository.deleteTrip(currentTrip.id)
                                 onBack()
                             }
                         },
@@ -163,7 +175,7 @@ fun TripDetailsScreen(
                         )
                         Spacer(modifier = Modifier.height(5.dp))
                         Text(
-                            "${trip.startDate} - ${trip.endDate}",
+                            "${currentTrip.startDate} - ${currentTrip.endDate}",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurface
                         )
@@ -174,8 +186,8 @@ fun TripDetailsScreen(
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 MetricCard(
                     title = "Budget",
-                    value = "$${trip.budgetSpent}",
-                    subtitle = "of $${trip.budgetTotal}",
+                    value = "$${currentTrip.budgetSpent}",
+                    subtitle = "of $${currentTrip.budgetTotal}",
                     icon = Icons.Default.AttachMoney,
                     iconTint = MaterialTheme.colorScheme.secondary,
                     backgroundTint = MaterialTheme.colorScheme.secondaryContainer,
@@ -185,7 +197,7 @@ fun TripDetailsScreen(
 
                 MetricCard(
                     title = "Packing",
-                    value = "${trip.packingList.count { it.checked }}/${trip.packingList.size}",
+                    value = "${currentTrip.packingList.count { it.checked }}/${currentTrip.packingList.size}",
                     subtitle = "items packed",
                     icon = Icons.Default.Inventory,
                     iconTint = MaterialTheme.colorScheme.tertiary,
@@ -208,19 +220,19 @@ fun TripDetailsScreen(
 
                     Spacer(modifier = Modifier.height(12.dp))
 
-                    if (trip.itinerary.isEmpty()) {
+                    if (currentTrip.itinerary.isEmpty()) {
                         Text(
                             "No activities planned yet.",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     } else {
-                        trip.itinerary.firstOrNull()?.activities?.take(2)?.forEach { activity ->
+                        currentTrip.itinerary.firstOrNull()?.activities?.take(2)?.forEach { activity ->
                             TripBulletItem(
                                 title = activity.title,
                                 location = activity.location,
                                 time = activity.time,
-                                dateLabel = trip.itinerary.firstOrNull()?.dateLabel
+                                dateLabel = currentTrip.itinerary.firstOrNull()?.dateLabel
                             )
                             Spacer(modifier = Modifier.height(14.dp))
                         }

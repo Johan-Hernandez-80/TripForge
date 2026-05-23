@@ -29,7 +29,9 @@ import java.util.UUID
 @Composable
 fun AddTripScreen(
     onBack: () -> Unit = {},
-    onSave: () -> Unit = {}
+    onSave: () -> Unit = {},
+    initialCountry: String? = null,
+    initialCity: String? = null
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -38,7 +40,8 @@ fun AddTripScreen(
 
     var tripName by rememberSaveable { mutableStateOf("") }
     var budget by rememberSaveable { mutableStateOf("") }
-    var location by rememberSaveable { mutableStateOf("") }
+    var selectedCountry by rememberSaveable { mutableStateOf(initialCountry ?: "") }
+    var selectedCity by rememberSaveable { mutableStateOf(initialCity ?: "") }
     var startDate by rememberSaveable { mutableStateOf("") }
     var endDate by rememberSaveable { mutableStateOf("") }
 
@@ -65,12 +68,11 @@ fun AddTripScreen(
             modifier = Modifier.fillMaxWidth()
         )
 
-        LabeledField(
-            label = "Destination",
-            value = location,
-            onValueChange = { location = it },
-            placeholder = "e.g., Paris, France",
-            leadingIcon = Icons.Default.LocationOn,
+        LocationPickerFields(
+            selectedCountry = selectedCountry,
+            selectedCity = selectedCity,
+            onCountryChange = { selectedCountry = it },
+            onCityChange = { selectedCity = it },
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -99,8 +101,9 @@ fun AddTripScreen(
 
         Button(
             onClick = {
-                if (tripName.isNotBlank() && location.isNotBlank()) {
+                if (tripName.isNotBlank() && selectedCountry.isNotBlank() && selectedCity.isNotBlank()) {
                     scope.launch {
+                        val location = "$selectedCity, $selectedCountry"
                         val newTrip = TripSummary(
                             id = UUID.randomUUID().toString(),
                             title = tripName,
