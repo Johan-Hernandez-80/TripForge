@@ -9,9 +9,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -19,32 +19,45 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.tripforge.data.PreferencesDataStore
 import com.example.tripforge.model.TripSummary
 import com.example.tripforge.screens.AddActivityScreen
 import com.example.tripforge.screens.AddTripScreen
+import com.example.tripforge.screens.AppSettingsScreen
 import com.example.tripforge.screens.BudgetScreen
 import com.example.tripforge.screens.EditTripScreen
 import com.example.tripforge.screens.HomeScreen
 import com.example.tripforge.screens.ItineraryScreen
 import com.example.tripforge.screens.MapScreen
+import com.example.tripforge.screens.NotificationsScreen
 import com.example.tripforge.screens.PackingListScreen
+import com.example.tripforge.screens.PrivacyScreen
 import com.example.tripforge.screens.ProfileScreen
+import com.example.tripforge.screens.TravelPreferencesScreen
 import com.example.tripforge.screens.TripDetailsScreen
 import com.example.tripforge.screens.TripsScreen
 import com.example.tripforge.ui.components.BottomNav
 import com.example.tripforge.ui.theme.TripForgeTheme
 import com.google.gson.Gson
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            var isDarkMode by rememberSaveable { mutableStateOf(false) }
+            val context = LocalContext.current
+            val preferencesDataStore = remember { PreferencesDataStore(context) }
+            val isDarkMode by preferencesDataStore.darkModeFlow.collectAsState(initial = false)
+            val scope = rememberCoroutineScope()
             
             TripForgeTheme(darkTheme = isDarkMode) {
                 MainScreen(
                     isDarkMode = isDarkMode,
-                    onDarkModeChange = { isDarkMode = it }
+                    onDarkModeChange = { newValue ->
+                        scope.launch {
+                            preferencesDataStore.setDarkMode(newValue)
+                        }
+                    }
                 )
             }
         }
@@ -130,11 +143,15 @@ fun MainScreen(
                     }
                 )
             }
-            composable("map") { MapScreen() }
+            composable("map") { MapScreen(navController = navController) }
             composable("profile") {
                 ProfileScreen(
                     isDarkMode = isDarkMode,
-                    onDarkModeChange = onDarkModeChange
+                    onDarkModeChange = onDarkModeChange,
+                    onNavigateToTravelPreferences = { navController.navigate("travel_preferences") },
+                    onNavigateToNotifications = { navController.navigate("notifications") },
+                    onNavigateToPrivacy = { navController.navigate("privacy") },
+                    onNavigateToAppSettings = { navController.navigate("app_settings") }
                 ) 
             }
             
@@ -142,6 +159,23 @@ fun MainScreen(
                 AddTripScreen(
                     onBack = { navController.popBackStack() },
                     onSave = { navController.popBackStack() }
+                ) 
+            }
+            
+            composable(
+                route = "add_trip?country={country}&city={city}",
+                arguments = listOf(
+                    navArgument("country") { type = NavType.StringType; defaultValue = "" },
+                    navArgument("city") { type = NavType.StringType; defaultValue = "" }
+                )
+            ) { backStackEntry ->
+                val country = backStackEntry.arguments?.getString("country") ?: ""
+                val city = backStackEntry.arguments?.getString("city") ?: ""
+                AddTripScreen(
+                    onBack = { navController.popBackStack() },
+                    onSave = { navController.popBackStack() },
+                    initialCountry = if (country.isNotBlank()) country else null,
+                    initialCity = if (city.isNotBlank()) city else null
                 ) 
             }
 
@@ -245,6 +279,30 @@ fun MainScreen(
                         onBack = { navController.popBackStack() }
                     )
                 }
+            }
+
+            composable("travel_preferences") {
+                TravelPreferencesScreen(
+                    onBack = { navController.popBackStack() }
+                )
+            }
+
+            composable("notifications") {
+                NotificationsScreen(
+                    onBack = { navController.popBackStack() }
+                )
+            }
+
+            composable("privacy") {
+                PrivacyScreen(
+                    onBack = { navController.popBackStack() }
+                )
+            }
+
+            composable("app_settings") {
+                AppSettingsScreen(
+                    onBack = { navController.popBackStack() }
+                )
             }
         }
     }
