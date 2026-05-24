@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalContext
 import com.example.tripforge.data.TripRepository
+import com.example.tripforge.model.ActivityItem
 import com.example.tripforge.ui.components.ScreenHeader
 import com.example.tripforge.ui.components.TripDaySection
 import kotlinx.coroutines.launch
@@ -22,7 +23,8 @@ import kotlinx.coroutines.launch
 fun ItineraryScreen(
     tripId: String,
     onBack: () -> Unit = {},
-    onAddActivity: () -> Unit = {}
+    onAddActivity: () -> Unit = {},
+    onEditActivity: (ActivityItem) -> Unit = {}
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -83,6 +85,7 @@ fun ItineraryScreen(
                             day = dayPlan.day,
                             dateLabel = dayPlan.dateLabel,
                             activities = dayPlan.activities,
+                            onEditActivity = onEditActivity,
                             onDeleteActivity = { activityId ->
                                 scope.launch {
                                     repository.deleteActivity(tripId, activityId)

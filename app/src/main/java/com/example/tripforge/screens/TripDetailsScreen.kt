@@ -141,24 +141,6 @@ fun TripDetailsScreen(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    if (currentTrip.status != TripStatus.COMPLETE) {
-                        IconButton(
-                            onClick = {
-                                scope.launch {
-                                    val updatedTrip = currentTrip.copy(status = TripStatus.COMPLETE)
-                                    repository.saveTrip(updatedTrip, isEdit = true)
-                                }
-                            },
-                            modifier = Modifier
-                                .size(40.dp)
-                                .background(
-                                    Color.Black.copy(alpha = 0.30f),
-                                    shape = MaterialTheme.shapes.large
-                                )
-                        ) {
-                            Icon(Icons.Default.CheckCircle, contentDescription = "Mark Complete", tint = Color.White)
-                        }
-                    }
                     IconButton(
                         onClick = onEdit,
                         modifier = Modifier

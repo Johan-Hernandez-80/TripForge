@@ -4,6 +4,8 @@ import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -19,15 +21,20 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import android.Manifest
+import android.os.Build
 import com.example.tripforge.data.ImageService
 import com.example.tripforge.data.PreferencesDataStore
 import com.example.tripforge.data.TripRepository
 import com.example.tripforge.data.AuthenticationDataStore
+import com.example.tripforge.data.NotificationWorker
+import com.example.tripforge.model.ActivityItem
 import com.example.tripforge.model.TripSummary
 import com.example.tripforge.screens.AddActivityScreen
 import com.example.tripforge.screens.AddTripScreen
 import com.example.tripforge.screens.AppSettingsScreen
 import com.example.tripforge.screens.BudgetScreen
+import com.example.tripforge.screens.EditActivityScreen
 import com.example.tripforge.screens.EditTripScreen
 import com.example.tripforge.screens.HomeScreen
 import com.example.tripforge.screens.ItineraryScreen
@@ -59,6 +66,22 @@ class MainActivity : ComponentActivity() {
             val imageService = remember { ImageService() }
             val tripRepository = remember { TripRepository(context) }
             val trips by tripRepository.trips.collectAsState(initial = emptyList())
+
+            val notificationPermissionLauncher = rememberLauncherForActivityResult(
+                ActivityResultContracts.RequestPermission()
+            ) { _ ->
+                scope.launch {
+                    NotificationWorker.scheduleNotifications(context)
+                }
+            }
+
+            LaunchedEffect(Unit) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                } else {
+                    NotificationWorker.scheduleNotifications(context)
+                }
+            }
 
             LaunchedEffect(trips.isNotEmpty()) {
                 if (trips.isNotEmpty()) {
@@ -139,6 +162,10 @@ fun MainScreen(
                     onNewTrip = { navController.navigate("add_trip") },
                     onViewAll = { navController.navigate("trips") },
                     onOpenDetails = { navController.navigate("trips") },
+                    onOpenTrip = { trip ->                                // ← NUEVO
+                        val tripJson = Uri.encode(gson.toJson(trip))
+                        navController.navigate("trip_details/$tripJson")
+                    },
                     selectedTab = "home",
                     onSelectTab = { route ->
                         navController.navigate(route) {
@@ -151,6 +178,7 @@ fun MainScreen(
                     }
                 )
             }
+
             composable("trips") {
                 TripsScreen(
                     onTripClick = { trip ->
@@ -183,16 +211,16 @@ fun MainScreen(
                     onNavigateToPrivacy = { navController.navigate("privacy") },
                     onNavigateToAppSettings = { navController.navigate("app_settings") },
                     onLogout = onLogout
-                ) 
+                )
             }
-            
+
             composable("add_trip") {
                 AddTripScreen(
                     onBack = { navController.popBackStack() },
                     onSave = { navController.popBackStack() }
-                ) 
+                )
             }
-            
+
             composable(
                 route = "add_trip?country={country}&city={city}",
                 arguments = listOf(
@@ -207,7 +235,7 @@ fun MainScreen(
                     onSave = { navController.popBackStack() },
                     initialCountry = if (country.isNotBlank()) country else null,
                     initialCity = if (city.isNotBlank()) city else null
-                ) 
+                )
             }
 
             composable(
@@ -224,7 +252,7 @@ fun MainScreen(
                     )
                 }
             }
-            
+
             composable(
                 route = "trip_details/{tripJson}",
                 arguments = listOf(navArgument("tripJson") { type = NavType.StringType })
@@ -254,7 +282,7 @@ fun MainScreen(
                     )
                 }
             }
-            
+
             composable(
                 route = "budget/{tripJson}",
                 arguments = listOf(navArgument("tripJson") { type = NavType.StringType })
@@ -268,7 +296,7 @@ fun MainScreen(
                     )
                 }
             }
-            
+
             composable(
                 route = "itinerary/{tripJson}",
                 arguments = listOf(navArgument("tripJson") { type = NavType.StringType })
@@ -281,11 +309,15 @@ fun MainScreen(
                         onBack = { navController.popBackStack() },
                         onAddActivity = {
                             navController.navigate("add_activity/${trip.id}")
+                        },
+                        onEditActivity = { activity ->
+                            val activityJson = Uri.encode(gson.toJson(activity))
+                            navController.navigate("edit_activity/${trip.id}/$activityJson")
                         }
                     )
                 }
             }
-            
+
             composable(
                 route = "add_activity/{tripId}",
                 arguments = listOf(navArgument("tripId") { type = NavType.StringType })
@@ -296,6 +328,26 @@ fun MainScreen(
                     onBack = { navController.popBackStack() },
                     onSave = { navController.popBackStack() }
                 )
+            }
+
+            composable(
+                route = "edit_activity/{tripId}/{activityJson}",
+                arguments = listOf(
+                    navArgument("tripId") { type = NavType.StringType },
+                    navArgument("activityJson") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
+                val tripId = backStackEntry.arguments?.getString("tripId") ?: ""
+                val activityJson = backStackEntry.arguments?.getString("activityJson")
+                val activity = activityJson?.let { gson.fromJson(Uri.decode(it), ActivityItem::class.java) }
+                if (activity != null) {
+                    EditActivityScreen(
+                        tripId = tripId,
+                        activity = activity,
+                        onBack = { navController.popBackStack() },
+                        onSave = { navController.popBackStack() }
+                    )
+                }
             }
 
             composable(
