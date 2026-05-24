@@ -31,17 +31,24 @@ fun ProfileScreen(
     onNavigateToTravelPreferences: () -> Unit = {},
     onNavigateToNotifications: () -> Unit = {},
     onNavigateToPrivacy: () -> Unit = {},
-    onNavigateToAppSettings: () -> Unit = {}
+    onNavigateToAppSettings: () -> Unit = {},
+    onLogout: () -> Unit = {}
 ) {
     val scrollState = rememberScrollState()
     val context = LocalContext.current
     val repository = remember { TripRepository(context) }
     val trips by repository.trips.collectAsState(initial = emptyList())
+    val currentUser by repository.getCurrentUserFlow().collectAsState(initial = null)
+    val scope = rememberCoroutineScope()
     
     val totalTrips = trips.size
     val completedTrips = trips.count { it.status == TripStatus.COMPLETE }
     val upcomingTrips = trips.count { it.status == TripStatus.UPCOMING }
-    val totalSpending = trips.sumOf { it.budgetTotal }
+    
+    // Calculate total actual spending from all expenses across all trips
+    val totalActualSpending = trips.sumOf { trip -> 
+        trip.expenses.sumOf { it.amount }
+    }
     
     Scaffold { innerPadding ->
         Column(
@@ -95,36 +102,17 @@ fun ProfileScreen(
 
                         Spacer(Modifier.width(16.dp))
 
-                        Button(
-                            onClick = { },
-                            modifier = Modifier.weight(1f),
-                            shape = RoundedCornerShape(12.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.surface
-                            )
-                        ) {
+                        Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                "Login",
-                                color = MaterialTheme.colorScheme.primary,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-
-                        Spacer(Modifier.width(8.dp))
-
-                        OutlinedButton(
-                            onClick = { },
-                            modifier = Modifier.weight(1f),
-                            shape = RoundedCornerShape(12.dp),
-                            border = BorderStroke(
-                                1.dp,
-                                MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.5f)
-                            )
-                        ) {
-                            Text(
-                                "Sign up",
+                                currentUser?.name ?: "User",
                                 color = MaterialTheme.colorScheme.onPrimary,
+                                style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                currentUser?.email ?: "user@example.com",
+                                color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f),
+                                style = MaterialTheme.typography.bodySmall
                             )
                         }
                     }
@@ -173,12 +161,12 @@ fun ProfileScreen(
 
                         Column {
                             Text(
-                                "Total Travel Spending",
+                                "Total Expenses",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             Text(
-                                "$$totalSpending",
+                                "$$totalActualSpending",
                                 style = MaterialTheme.typography.headlineSmall,
                                 fontWeight = FontWeight.SemiBold
                             )
@@ -317,7 +305,11 @@ fun ProfileScreen(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { }
+                            .clickable { 
+                                scope.launch {
+                                    onLogout()
+                                }
+                            }
                             .padding(16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -337,7 +329,7 @@ fun ProfileScreen(
                     }
                 }
 
-                Spacer(Modifier.height(48.dp)) // Added more bottom spacing
+                Spacer(Modifier.height(48.dp))
             }
         }
     }

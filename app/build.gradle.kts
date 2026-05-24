@@ -15,9 +15,29 @@ android {
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
-        manifestPlaceholders["MAPS_API_KEY"] =
+
+        val mapsApiKey =
             project.findProperty("MAPS_API_KEY") as String? ?: ""
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        val pixabayApiKey =
+            project.findProperty("PIXABAY_API_KEY") as String? ?: ""
+
+        manifestPlaceholders["MAPS_API_KEY"] = mapsApiKey
+
+        buildConfigField(
+            "String",
+            "PIXABAY_API_KEY",
+            "\"$pixabayApiKey\""
+        )
+
+        buildConfigField(
+            "String",
+            "MAPS_API_KEY",
+            "\"$mapsApiKey\""
+        )
+
+        testInstrumentationRunner =
+            "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
@@ -36,6 +56,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -63,7 +84,14 @@ dependencies {
     implementation("com.google.code.gson:gson:2.11.0")
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.5.0")
 
-    // Google Maps
+    // Image loading and caching
+    implementation("io.coil-kt.coil3:coil-compose:3.0.4")
+    implementation("io.coil-kt.coil3:coil-network-okhttp:3.0.4")
+
+    // HTTP Client
+    implementation("com.squareup.okhttp3:okhttp:4.11.0")
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
     implementation("com.google.android.gms:play-services-maps:18.2.0")
 
     // User location support

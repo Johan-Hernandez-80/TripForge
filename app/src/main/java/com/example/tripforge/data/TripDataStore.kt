@@ -41,7 +41,7 @@ class TripDataStore(private val context: Context) {
             if (index != -1) {
                 currentTrips[index] = trip
             } else {
-                currentTrips.add(trip)
+                currentTrips.add(0, trip)
             }
             preferences[TRIPS_KEY] = gson.toJson(currentTrips)
         }
