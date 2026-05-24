@@ -4,17 +4,59 @@ import android.content.Context
 import android.widget.Toast
 import com.example.tripforge.model.*
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
+import java.text.DateFormat
+import java.util.Date
 import java.util.UUID
 
 class TripRepository(private val context: Context) {
     private val dataStore = TripDataStore(context)
+    private val authStore = AuthenticationDataStore(context)
+    private val dateFormatter = DateFormat.getDateInstance()
 
-    val trips: Flow<List<TripSummary>> = dataStore.tripsFlow
+    private fun calculateTripStatus(trip: TripSummary): TripSummary {
+        return try {
+            val startDate = dateFormatter.parse(trip.startDate)
+            val endDate = dateFormatter.parse(trip.endDate)
+            val today = Date()
+            
+            val status = when {
+                today.before(startDate) -> TripStatus.UPCOMING
+                !today.after(endDate) -> TripStatus.ONGOING
+                else -> TripStatus.COMPLETE
+            }
+            
+            trip.copy(status = status)
+        } catch (e: Exception) {
+            trip
+        }
+    }
+
+    val trips: Flow<List<TripSummary>> = combine(
+        dataStore.tripsFlow,
+        authStore.currentUserFlow
+    ) { allTrips, currentUser ->
+        if (currentUser != null) {
+            allTrips
+                .filter { it.userId == currentUser.id }
+                .map { calculateTripStatus(it) }
+                .sortedByDescending { it.createdAt }
+        } else {
+            emptyList()
+        }
+    }
 
     suspend fun saveTrip(trip: TripSummary, isEdit: Boolean = false) {
         try {
-            dataStore.saveTrip(trip)
-            showToast(if (isEdit) "Trip updated successfully" else "Trip created successfully")
+            val currentUser = authStore.getCurrentUser()
+            if (currentUser != null) {
+                val tripWithUser = trip.copy(userId = currentUser.id)
+                dataStore.saveTrip(tripWithUser)
+                showToast(if (isEdit) "Trip updated successfully" else "Trip created successfully")
+            } else {
+                showToast("You must be logged in to save trips")
+            }
         } catch (e: Exception) {
             showToast("Error saving trip: ${e.message}")
         }
@@ -90,6 +132,12 @@ class TripRepository(private val context: Context) {
             showToast("Error removing item")
         }
     }
+
+    suspend fun getCurrentUser(): User? = authStore.getCurrentUser()
+
+    suspend fun logout() = authStore.logout()
+
+    fun getCurrentUserFlow(): Flow<User?> = authStore.currentUserFlow
 
     private fun showToast(message: String) {
         Toast.makeText(context, message, Toast.LENGTH_SHORT).show()

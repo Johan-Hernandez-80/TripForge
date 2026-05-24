@@ -11,6 +11,7 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
+        android:name=".TripForgeApplication"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -20,6 +21,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.TripForge"
         tools:targetApi="31">
+
 
         <!-- Google Maps API Key -->
         <meta-data

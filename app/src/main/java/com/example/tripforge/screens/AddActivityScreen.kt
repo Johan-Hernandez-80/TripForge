@@ -6,11 +6,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AttachMoney
-import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -19,7 +16,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalContext
 import com.example.tripforge.data.TripRepository
 import com.example.tripforge.model.ActivityItem
-import com.example.tripforge.ui.components.DateField
 import com.example.tripforge.ui.components.DatePickerField
 import com.example.tripforge.ui.components.LabeledField
 import com.example.tripforge.ui.components.MoneyField
@@ -45,7 +41,6 @@ fun AddActivityScreen(
     var description by rememberSaveable { mutableStateOf("") }
     var cost by rememberSaveable { mutableStateOf("") }
 
-    var showStartDatePicker by rememberSaveable() { mutableStateOf(false) }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -56,7 +51,7 @@ fun AddActivityScreen(
     ) {
         ScreenHeader(
             title = "Add Activity",
-            subtitle = "Tokyo Adventure",
+            subtitle = "Plan your next adventure",
             onBack = onBack
         )
 
@@ -90,7 +85,6 @@ fun AddActivityScreen(
             modifier = Modifier.fillMaxWidth()
         )
 
-
         LabeledField(
             label = "Description (optional)",
             value = description,
@@ -119,7 +113,8 @@ fun AddActivityScreen(
                             description = description,
                             cost = cost.toIntOrNull()
                         )
-                        repository.addActivity("sample_trip_id", 1, newActivity)
+                        // Using tripId from parameters instead of hardcoded value
+                        repository.addActivity(tripId, 1, newActivity)
                         onSave()
                     }
                 }

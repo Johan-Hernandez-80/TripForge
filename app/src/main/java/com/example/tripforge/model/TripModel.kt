@@ -38,9 +38,12 @@ data class TripSummary(
     val status: TripStatus = TripStatus.UPCOMING,
     val budgetTotal: Int = 0,
     val budgetSpent: Int = 0,
+    val imageUrl: String = "",
     val expenses: List<ExpenseItem> = emptyList(),
     val itinerary: List<DayPlan> = emptyList(),
-    val packingList: List<PackingItem> = emptyList()
+    val packingList: List<PackingItem> = emptyList(),
+    val userId: String = "",
+    val createdAt: Long = System.currentTimeMillis()
 )
 
 @Serializable

@@ -19,7 +19,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.tripforge.data.ImageService
 import com.example.tripforge.data.PreferencesDataStore
+import com.example.tripforge.data.TripRepository
+import com.example.tripforge.data.AuthenticationDataStore
 import com.example.tripforge.model.TripSummary
 import com.example.tripforge.screens.AddActivityScreen
 import com.example.tripforge.screens.AddTripScreen
@@ -35,6 +38,7 @@ import com.example.tripforge.screens.PrivacyScreen
 import com.example.tripforge.screens.ProfileScreen
 import com.example.tripforge.screens.TravelPreferencesScreen
 import com.example.tripforge.screens.TripDetailsScreen
+import com.example.tripforge.screens.LoginRegisterScreen
 import com.example.tripforge.screens.TripsScreen
 import com.example.tripforge.ui.components.BottomNav
 import com.example.tripforge.ui.theme.TripForgeTheme
@@ -47,18 +51,42 @@ class MainActivity : ComponentActivity() {
         setContent {
             val context = LocalContext.current
             val preferencesDataStore = remember { PreferencesDataStore(context) }
+            val authStore = remember { AuthenticationDataStore(context) }
             val isDarkMode by preferencesDataStore.darkModeFlow.collectAsState(initial = false)
+            val currentUser by authStore.currentUserFlow.collectAsState(initial = null)
             val scope = rememberCoroutineScope()
-            
-            TripForgeTheme(darkTheme = isDarkMode) {
-                MainScreen(
-                    isDarkMode = isDarkMode,
-                    onDarkModeChange = { newValue ->
-                        scope.launch {
-                            preferencesDataStore.setDarkMode(newValue)
-                        }
+
+            val imageService = remember { ImageService() }
+            val tripRepository = remember { TripRepository(context) }
+            val trips by tripRepository.trips.collectAsState(initial = emptyList())
+
+            LaunchedEffect(trips.isNotEmpty()) {
+                if (trips.isNotEmpty()) {
+                    imageService.preloadTripImages(context, trips) { updatedTrip ->
+                        tripRepository.saveTrip(updatedTrip, isEdit = true)
                     }
-                )
+                }
+            }
+
+            TripForgeTheme(darkTheme = isDarkMode) {
+                if (currentUser == null) {
+                    LoginRegisterScreen(onAuthSuccess = {})
+                } else {
+                    MainScreen(
+                        isDarkMode = isDarkMode,
+                        onDarkModeChange = { newValue ->
+                            scope.launch {
+                                preferencesDataStore.setDarkMode(newValue)
+                            }
+                        },
+                        tripRepository = tripRepository,
+                        onLogout = {
+                            scope.launch {
+                                authStore.logout()
+                            }
+                        }
+                    )
+                }
             }
         }
     }
@@ -67,7 +95,9 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MainScreen(
     isDarkMode: Boolean,
-    onDarkModeChange: (Boolean) -> Unit
+    onDarkModeChange: (Boolean) -> Unit,
+    tripRepository: TripRepository? = null,
+    onLogout: () -> Unit = {}
 ) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -151,7 +181,8 @@ fun MainScreen(
                     onNavigateToTravelPreferences = { navController.navigate("travel_preferences") },
                     onNavigateToNotifications = { navController.navigate("notifications") },
                     onNavigateToPrivacy = { navController.navigate("privacy") },
-                    onNavigateToAppSettings = { navController.navigate("app_settings") }
+                    onNavigateToAppSettings = { navController.navigate("app_settings") },
+                    onLogout = onLogout
                 ) 
             }
             
