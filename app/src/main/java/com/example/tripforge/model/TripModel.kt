@@ -54,7 +54,8 @@ data class ActivityItem(
     val time: String = "",
     val description: String = "",
     val cost: Int? = null,
-    val completed: Boolean = false
+    val completed: Boolean = false,
+    val date: String = ""
 )
 
 @Serializable

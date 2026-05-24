@@ -6,27 +6,28 @@ import com.example.tripforge.model.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
-import java.text.DateFormat
+import java.text.SimpleDateFormat
 import java.util.Date
+import java.util.Locale
 import java.util.UUID
 
 class TripRepository(private val context: Context) {
     private val dataStore = TripDataStore(context)
     private val authStore = AuthenticationDataStore(context)
-    private val dateFormatter = DateFormat.getDateInstance()
+    private val dateFormatter = SimpleDateFormat("MM/dd/yyyy", Locale.US)
 
     private fun calculateTripStatus(trip: TripSummary): TripSummary {
         return try {
             val startDate = dateFormatter.parse(trip.startDate)
             val endDate = dateFormatter.parse(trip.endDate)
             val today = Date()
-            
+
             val status = when {
                 today.before(startDate) -> TripStatus.UPCOMING
                 !today.after(endDate) -> TripStatus.ONGOING
                 else -> TripStatus.COMPLETE
             }
-            
+
             trip.copy(status = status)
         } catch (e: Exception) {
             trip
@@ -95,6 +96,15 @@ class TripRepository(private val context: Context) {
             showToast("Activity added")
         } catch (e: Exception) {
             showToast("Error adding activity")
+        }
+    }
+
+    suspend fun editActivity(tripId: String, activity: ActivityItem) {
+        try {
+            dataStore.updateActivity(tripId, activity)
+            showToast("Activity updated")
+        } catch (e: Exception) {
+            showToast("Error updating activity")
         }
     }
 

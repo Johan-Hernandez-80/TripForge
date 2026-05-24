@@ -22,11 +22,11 @@ import com.example.tripforge.ui.components.MoneyField
 import com.example.tripforge.ui.components.ScreenHeader
 import com.example.tripforge.ui.components.TimeField
 import kotlinx.coroutines.launch
-import java.util.UUID
 
 @Composable
-fun AddActivityScreen(
+fun EditActivityScreen(
     tripId: String,
+    activity: ActivityItem,
     onBack: () -> Unit = {},
     onSave: () -> Unit = {}
 ) {
@@ -34,12 +34,13 @@ fun AddActivityScreen(
     val scope = rememberCoroutineScope()
     val repository = remember { TripRepository(context) }
 
-    var activityName by rememberSaveable { mutableStateOf("") }
-    var location by rememberSaveable { mutableStateOf("") }
-    var date by rememberSaveable { mutableStateOf("") }
-    var time by rememberSaveable { mutableStateOf("") }
-    var description by rememberSaveable { mutableStateOf("") }
-    var cost by rememberSaveable { mutableStateOf("") }
+    var activityName by rememberSaveable { mutableStateOf(activity.title) }
+    var location by rememberSaveable { mutableStateOf(activity.location) }
+    var date by rememberSaveable { mutableStateOf(activity.date) }
+    var time by rememberSaveable { mutableStateOf(activity.time) }
+    var description by rememberSaveable { mutableStateOf(activity.description) }
+    var cost by rememberSaveable { mutableStateOf(activity.cost?.toString() ?: "") }
+    var isCompleted by rememberSaveable { mutableStateOf(activity.completed) }
 
     Column(
         modifier = Modifier
@@ -50,8 +51,8 @@ fun AddActivityScreen(
         verticalArrangement = Arrangement.spacedBy(18.dp)
     ) {
         ScreenHeader(
-            title = "Add Activity",
-            subtitle = "Plan your next adventure",
+            title = "Edit Activity",
+            subtitle = "Update your activity details",
             onBack = onBack
         )
 
@@ -101,29 +102,70 @@ fun AddActivityScreen(
             label = "Estimated Cost (optional)"
         )
 
-        Button(
-            onClick = {
-                if (activityName.isNotBlank() && date.isNotBlank()) {
-                    scope.launch {
-                        val newActivity = ActivityItem(
-                            id = UUID.randomUUID().toString(),
-                            title = activityName,
-                            location = location,
-                            time = time,
-                            description = description,
-                            cost = cost.toIntOrNull(),
-                            date = date
-                        )
-                        repository.addActivity(tripId, 1, newActivity)
-                        onSave()
-                    }
-                }
-            },
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(16.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+        Card(
+            shape = RoundedCornerShape(12.dp),
+            modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Save Activity", color = MaterialTheme.colorScheme.onPrimary)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    "Mark as Completed",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Switch(
+                    checked = isCompleted,
+                    onCheckedChange = { isCompleted = it }
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            OutlinedButton(
+                onClick = onBack,
+                modifier = Modifier
+                    .weight(1f)
+                    .height(48.dp),
+                shape = RoundedCornerShape(16.dp)
+            ) {
+                Text("Cancel")
+            }
+
+            Button(
+                onClick = {
+                    if (activityName.isNotBlank() && date.isNotBlank()) {
+                        scope.launch {
+                            val updatedActivity = activity.copy(
+                                title = activityName,
+                                location = location,
+                                time = time,
+                                description = description,
+                                cost = cost.toIntOrNull(),
+                                date = date,
+                                completed = isCompleted
+                            )
+                            repository.editActivity(tripId, updatedActivity)
+                            onSave()
+                        }
+                    }
+                },
+                modifier = Modifier
+                    .weight(1f)
+                    .height(48.dp),
+                shape = RoundedCornerShape(16.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+            ) {
+                Text("Save Changes", color = MaterialTheme.colorScheme.onPrimary)
+            }
         }
     }
 }
