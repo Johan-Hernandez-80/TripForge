@@ -139,43 +139,6 @@ fun MapScreen(
                         }
                     )
 
-                    Column(
-                        modifier = Modifier
-                            .align(Alignment.BottomStart)
-                            .padding(16.dp)
-                            .background(
-                                MaterialTheme.colorScheme.surface,
-                                RoundedCornerShape(16.dp)
-                            )
-                            .padding(12.dp)
-                    ) {
-                        Text("Legend", style = MaterialTheme.typography.labelMedium)
-
-                        Spacer(Modifier.height(8.dp))
-
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Box(
-                                Modifier
-                                    .size(12.dp)
-                                    .background(
-                                        MaterialTheme.colorScheme.primary,
-                                        RoundedCornerShape(50)
-                                    )
-                            )
-                            Spacer(Modifier.width(8.dp))
-                            Text("Trip")
-                        }
-
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Box(
-                                Modifier
-                                    .size(12.dp)
-                                    .background(Color(0xFFFF9800), RoundedCornerShape(50))
-                            )
-                            Spacer(Modifier.width(8.dp))
-                            Text("Activity")
-                        }
-                    }
                 } else {
                     Column(
                         modifier = Modifier.fillMaxSize(),
