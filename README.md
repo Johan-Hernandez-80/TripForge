@@ -139,13 +139,14 @@ app/src/main/java/com/example/tripforge/
 - Android Studio Hedgehog or later
 - Android device or emulator running API 24 or higher
 - A Google Maps API key with the Maps SDK for Android enabled
+- A PixaBay API key
 
 ### Installation
 
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/your-username/TripForge.git
+git clone https://github.com/Johan-Hernandez-80/TripForge.git
 cd TripForge
 ```
 
@@ -163,17 +164,19 @@ cd TripForge
 
 ## Configuration
 
-### Google Maps API Key
+### Google Maps & PixaBayAPI Key
 
-The app requires a Maps API key for the map screen and location features. Add it to your local `gradle.properties` file (this file should not be committed):
+The app requires a Maps API key for the map screen and location features. It must be added to `gradle.properties` file.
+The app also requires a PixaBay API key for automatic image loading when creating or loading a trip with no associated image. Said images will be kept in Cache.
 
 ```properties
 MAPS_API_KEY=your_api_key_here
+PIXABAY_API_KEY=your_api_key_here
 ```
 
 The key is injected at build time into the manifest and made available via `BuildConfig`.
 
-To get a key, visit the [Google Cloud Console](https://console.cloud.google.com/) and enable the Maps SDK for Android on your project.
+To get a maps API key, visit the [Google Cloud Console](https://console.cloud.google.com/) and enable the Maps SDK for Android on your project.
 
 ### Permissions
 
