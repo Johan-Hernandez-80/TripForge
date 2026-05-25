@@ -22,11 +22,11 @@ import com.example.tripforge.ui.components.MoneyField
 import com.example.tripforge.ui.components.ScreenHeader
 import com.example.tripforge.ui.components.TimeField
 import kotlinx.coroutines.launch
-import java.util.UUID
 
 @Composable
-fun AddActivityScreen(
+fun EditActivityScreen(
     tripId: String,
+    activity: ActivityItem,
     onBack: () -> Unit = {},
     onSave: () -> Unit = {}
 ) {
@@ -34,12 +34,12 @@ fun AddActivityScreen(
     val scope = rememberCoroutineScope()
     val repository = remember { TripRepository(context) }
 
-    var activityName by rememberSaveable { mutableStateOf("") }
-    var location by rememberSaveable { mutableStateOf("") }
-    var date by rememberSaveable { mutableStateOf("") }
-    var time by rememberSaveable { mutableStateOf("") }
-    var description by rememberSaveable { mutableStateOf("") }
-    var cost by rememberSaveable { mutableStateOf("") }
+    var activityName by rememberSaveable { mutableStateOf(activity.title) }
+    var location by rememberSaveable { mutableStateOf(activity.location) }
+    var date by rememberSaveable { mutableStateOf(activity.date) }
+    var time by rememberSaveable { mutableStateOf(activity.time) }
+    var description by rememberSaveable { mutableStateOf(activity.description) }
+    var cost by rememberSaveable { mutableStateOf(activity.cost?.toString() ?: "") }
 
     Column(
         modifier = Modifier
@@ -50,8 +50,8 @@ fun AddActivityScreen(
         verticalArrangement = Arrangement.spacedBy(18.dp)
     ) {
         ScreenHeader(
-            title = "Add Activity",
-            subtitle = "Plan your next adventure",
+            title = "Edit Activity",
+            subtitle = "Update your activity details",
             onBack = onBack
         )
 
@@ -101,29 +101,48 @@ fun AddActivityScreen(
             label = "Estimated Cost (optional)"
         )
 
-        Button(
-            onClick = {
-                if (activityName.isNotBlank() && date.isNotBlank()) {
-                    scope.launch {
-                        val newActivity = ActivityItem(
-                            id = UUID.randomUUID().toString(),
-                            title = activityName,
-                            location = location,
-                            time = time,
-                            description = description,
-                            cost = cost.toIntOrNull(),
-                            date = date
-                        )
-                        repository.addActivity(tripId, 1, newActivity)
-                        onSave()
-                    }
-                }
-            },
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Row(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(16.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Text("Save Activity", color = MaterialTheme.colorScheme.onPrimary)
+            OutlinedButton(
+                onClick = onBack,
+                modifier = Modifier
+                    .weight(1f)
+                    .height(48.dp),
+                shape = RoundedCornerShape(16.dp)
+            ) {
+                Text("Cancel")
+            }
+
+            Button(
+                onClick = {
+                    if (activityName.isNotBlank() && date.isNotBlank()) {
+                        scope.launch {
+                            val updatedActivity = activity.copy(
+                                title = activityName,
+                                location = location,
+                                time = time,
+                                description = description,
+                                cost = cost.toIntOrNull(),
+                                date = date,
+                                completed = activity.completed
+                            )
+                            repository.editActivity(tripId, updatedActivity)
+                            onSave()
+                        }
+                    }
+                },
+                modifier = Modifier
+                    .weight(1f)
+                    .height(48.dp),
+                shape = RoundedCornerShape(16.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+            ) {
+                Text("Save Changes", color = MaterialTheme.colorScheme.onPrimary)
+            }
         }
     }
 }

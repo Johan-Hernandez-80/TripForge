@@ -13,6 +13,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.layout.ContentScale
+import coil3.compose.AsyncImage
 import com.example.tripforge.data.TripRepository
 import com.example.tripforge.model.TripSummary
 import com.example.tripforge.model.TripStatus
@@ -33,7 +35,49 @@ fun TripDetailsScreen(
     val context = LocalContext.current
     val repository = remember { TripRepository(context) }
     val scope = rememberCoroutineScope()
-    var currentTrip by remember { mutableStateOf(trip) }
+    
+    // Collect trips from the repository flow to ensure live updates from other screens
+    val trips by repository.trips.collectAsState(initial = emptyList())
+    val currentTrip = trips.find { it.id == trip.id } ?: trip
+
+    val totalSpent = currentTrip.expenses.sumOf { it.amount }
+    val budgetTotal = currentTrip.budgetTotal
+    val packedCount = currentTrip.packingList.count { it.checked }
+    val totalPacking = currentTrip.packingList.size
+    val remainingBudget = budgetTotal - totalSpent
+    
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    
+    // Strings for display using local variables to simplify interpolation
+    val spentDisplay = "$remainingBudget"
+    val budgetSubtitle = "of $budgetTotal"
+    val packingDisplay = "$packedCount/$totalPacking"
+
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = { Text("Delete Trip") },
+            text = { Text("Are you sure you want to delete '${currentTrip.title}'? This action cannot be undone.") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        scope.launch {
+                            repository.deleteTrip(currentTrip.id)
+                            onBack()
+                        }
+                        showDeleteDialog = false
+                    }
+                ) {
+                    Text("Delete", color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
 
     Column(
         modifier = Modifier
@@ -47,6 +91,19 @@ fun TripDetailsScreen(
                 .height(240.dp)
                 .background(MaterialTheme.colorScheme.primary)
         ) {
+            if (currentTrip.imageUrl.isNotBlank()) {
+                AsyncImage(
+                    model = currentTrip.imageUrl,
+                    contentDescription = currentTrip.title,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.3f))
+                )
+            }
             IconButton(
                 onClick = onBack,
                 modifier = Modifier
@@ -63,20 +120,20 @@ fun TripDetailsScreen(
             ) {
                 Text(
                     text = currentTrip.title,
-                    color = MaterialTheme.colorScheme.onPrimary,
+                    color = Color.White,
                     style = MaterialTheme.typography.headlineMedium
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = currentTrip.location,
-                        color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.9f),
+                        color = Color.White.copy(alpha = 0.9f),
                         style = MaterialTheme.typography.bodyMedium
                     )
                     Spacer(modifier = Modifier.width(10.dp))
                     Text(
                         text = currentTrip.startDate,
-                        color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.9f),
+                        color = Color.White.copy(alpha = 0.9f),
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }
@@ -84,25 +141,6 @@ fun TripDetailsScreen(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    if (currentTrip.status != TripStatus.COMPLETE) {
-                        IconButton(
-                            onClick = {
-                                scope.launch {
-                                    val updatedTrip = currentTrip.copy(status = TripStatus.COMPLETE)
-                                    repository.saveTrip(updatedTrip, isEdit = true)
-                                    currentTrip = updatedTrip
-                                }
-                            },
-                            modifier = Modifier
-                                .size(40.dp)
-                                .background(
-                                    Color.Black.copy(alpha = 0.30f),
-                                    shape = MaterialTheme.shapes.large
-                                )
-                        ) {
-                            Icon(Icons.Default.CheckCircle, contentDescription = "Mark Complete", tint = Color.White)
-                        }
-                    }
                     IconButton(
                         onClick = onEdit,
                         modifier = Modifier
@@ -115,12 +153,7 @@ fun TripDetailsScreen(
                         Icon(Icons.Default.Edit, contentDescription = "Edit", tint = Color.White)
                     }
                     IconButton(
-                        onClick = {
-                            scope.launch {
-                                repository.deleteTrip(currentTrip.id)
-                                onBack()
-                            }
-                        },
+                        onClick = { showDeleteDialog = true },
                         modifier = Modifier
                             .size(40.dp)
                             .background(
@@ -186,8 +219,8 @@ fun TripDetailsScreen(
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 MetricCard(
                     title = "Budget",
-                    value = "$${currentTrip.budgetSpent}",
-                    subtitle = "of $${currentTrip.budgetTotal}",
+                    value = spentDisplay,
+                    subtitle = budgetSubtitle,
                     icon = Icons.Default.AttachMoney,
                     iconTint = MaterialTheme.colorScheme.secondary,
                     backgroundTint = MaterialTheme.colorScheme.secondaryContainer,
@@ -197,7 +230,7 @@ fun TripDetailsScreen(
 
                 MetricCard(
                     title = "Packing",
-                    value = "${currentTrip.packingList.count { it.checked }}/${currentTrip.packingList.size}",
+                    value = packingDisplay,
                     subtitle = "items packed",
                     icon = Icons.Default.Inventory,
                     iconTint = MaterialTheme.colorScheme.tertiary,
@@ -227,12 +260,16 @@ fun TripDetailsScreen(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     } else {
-                        currentTrip.itinerary.firstOrNull()?.activities?.take(2)?.forEach { activity ->
+                        val upcoming = currentTrip.itinerary
+                            .flatMap { day -> day.activities.map { it to day.dateLabel } }
+                            .take(2)
+
+                        upcoming.forEach { (activity, dateLabel) ->
                             TripBulletItem(
                                 title = activity.title,
                                 location = activity.location,
                                 time = activity.time,
-                                dateLabel = currentTrip.itinerary.firstOrNull()?.dateLabel
+                                dateLabel = dateLabel
                             )
                             Spacer(modifier = Modifier.height(14.dp))
                         }

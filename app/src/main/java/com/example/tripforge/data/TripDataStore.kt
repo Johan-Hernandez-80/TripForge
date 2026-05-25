@@ -41,7 +41,7 @@ class TripDataStore(private val context: Context) {
             if (index != -1) {
                 currentTrips[index] = trip
             } else {
-                currentTrips.add(trip)
+                currentTrips.add(0, trip)
             }
             preferences[TRIPS_KEY] = gson.toJson(currentTrips)
         }
@@ -84,6 +84,16 @@ class TripDataStore(private val context: Context) {
             trip.copy(itinerary = trip.itinerary.map { day ->
                 day.copy(activities = day.activities.map { 
                     if (it.id == activity.id) activity else it 
+                })
+            })
+        }
+    }
+
+    suspend fun toggleActivityCompletion(tripId: String, activityId: String) {
+        updateTrip(tripId) { trip ->
+            trip.copy(itinerary = trip.itinerary.map { day ->
+                day.copy(activities = day.activities.map { activity ->
+                    if (activity.id == activityId) activity.copy(completed = !activity.completed) else activity
                 })
             })
         }

@@ -13,22 +13,34 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalContext
-import com.example.tripforge.data.TripDataStore
-import com.example.tripforge.data.sampleDayPlans
+import com.example.tripforge.data.TripRepository
+import com.example.tripforge.model.ActivityItem
 import com.example.tripforge.ui.components.ScreenHeader
-import com.example.tripforge.ui.components.TripDaySection
+import com.example.tripforge.ui.components.ActivityCardCompact
 import kotlinx.coroutines.launch
+import java.text.DateFormat
+import java.util.Date
 
 @Composable
 fun ItineraryScreen(
     tripId: String,
     onBack: () -> Unit = {},
-    onAddActivity: () -> Unit = {}
+    onAddActivity: () -> Unit = {},
+    onEditActivity: (ActivityItem) -> Unit = {}
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val dataStore = remember { TripDataStore(context) }
-    val tripId = "sample_trip_id"
+    val repository = remember { TripRepository(context) }
+    
+    val trips by repository.trips.collectAsState(initial = emptyList())
+    val trip = trips.find { it.id == tripId }
+
+    if (trip == null) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator()
+        }
+        return
+    }
 
     Box(
         modifier = Modifier
@@ -48,7 +60,7 @@ fun ItineraryScreen(
                 Column(modifier = Modifier.padding(24.dp)) {
                     ScreenHeader(
                         title = "Itinerary",
-                        subtitle = "Tokyo Adventure",
+                        subtitle = trip.title,
                         onBack = onBack
                     )
                 }
@@ -56,23 +68,51 @@ fun ItineraryScreen(
 
             Column(
                 modifier = Modifier.padding(24.dp),
-                verticalArrangement = Arrangement.spacedBy(24.dp)
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                sampleDayPlans.forEach { dayPlan ->
-                    TripDaySection(
-                        day = dayPlan.day,
-                        dateLabel = dayPlan.dateLabel,
-                        activities = dayPlan.activities,
-                        onDeleteActivity = { activityId ->
-                            scope.launch {
-                                dataStore.deleteActivity(tripId, activityId)
-                            }
+                val dateFormatter = remember { DateFormat.getDateInstance() }
+                
+                val allActivities = trip.itinerary.flatMap { it.activities }
+                    .sortedBy { activity ->
+                        try {
+                            dateFormatter.parse(activity.date)?.time ?: Long.MAX_VALUE
+                        } catch (e: Exception) {
+                            Long.MAX_VALUE
                         }
-                    )
+                    }
+
+                if (allActivities.isEmpty()) {
+                    Box(
+                        modifier = Modifier.fillMaxWidth().padding(top = 40.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            "No activities planned yet.",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                } else {
+                    allActivities.forEach { activity ->
+                        ActivityCardCompact(
+                            activity = activity,
+                            onToggleCompletion = {
+                                scope.launch {
+                                    repository.toggleActivityCompletion(tripId, activity.id)
+                                }
+                            },
+                            onEdit = { onEditActivity(activity) },
+                            onDelete = {
+                                scope.launch {
+                                    repository.deleteActivity(tripId, activity.id)
+                                }
+                            }
+                        )
+                    }
                 }
             }
 
-            Spacer(modifier = Modifier.height(72.dp))
+            Spacer(modifier = Modifier.height(100.dp))
         }
 
         FloatingActionButton(

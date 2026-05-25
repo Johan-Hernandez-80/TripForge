@@ -7,13 +7,17 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalContext
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 import com.example.tripforge.data.PreferencesDataStore
+import com.example.tripforge.data.NotificationWorker
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -69,17 +73,67 @@ fun NotificationsScreen(
                 ) {
                     Column {
                         Text("Enable Notifications", style = MaterialTheme.typography.titleMedium)
-                        Text("Receive all notifications", style = MaterialTheme.typography.bodySmall)
+                        Text("Receive all trip notifications", style = MaterialTheme.typography.bodySmall)
                     }
                     Switch(
                         checked = notificationsEnabled,
                         onCheckedChange = { newValue ->
                             scope.launch {
                                 preferencesDataStore.setNotificationsEnabled(newValue)
+                                if (newValue) {
+                                    NotificationWorker.scheduleNotifications(context)
+                                } else {
+                                    NotificationWorker.cancelNotifications(context)
+                                }
                             }
                         }
                     )
                 }
+            }
+
+            if (notificationsEnabled) {
+                Text(
+                    "Trip Notifications",
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(start = 8.dp, top = 8.dp)
+                )
+
+                NotificationTypeCard(
+                    icon = Icons.Default.Check,
+                    title = "Trip One Week Away",
+                    description = "Get notified 7 days before your trip starts"
+                )
+
+                NotificationTypeCard(
+                    icon = Icons.Default.Check,
+                    title = "Trip Tomorrow",
+                    description = "Reminder when your trip is starting tomorrow"
+                )
+
+                NotificationTypeCard(
+                    icon = Icons.Default.Check,
+                    title = "Packing Incomplete",
+                    description = "Alert if packing list isn't complete before trip"
+                )
+
+                NotificationTypeCard(
+                    icon = Icons.Default.Check,
+                    title = "Activity Tomorrow",
+                    description = "Reminder when a planned activity is tomorrow"
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+
+
+            Button(
+                onClick = {
+                    val testWork = OneTimeWorkRequestBuilder<NotificationWorker>().build()
+                    WorkManager.getInstance(context).enqueue(testWork)
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Run notification check now")
             }
 
             // Travel Alerts
@@ -135,6 +189,49 @@ fun NotificationsScreen(
                         }
                     )
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun NotificationTypeCard(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    title: String,
+    description: String,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        shape = RoundedCornerShape(12.dp),
+        modifier = modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+        )
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(20.dp)
+            )
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    title,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    description,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
     }
