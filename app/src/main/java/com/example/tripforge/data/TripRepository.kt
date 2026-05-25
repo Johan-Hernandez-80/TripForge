@@ -108,6 +108,14 @@ class TripRepository(private val context: Context) {
         }
     }
 
+    suspend fun toggleActivityCompletion(tripId: String, activityId: String) {
+        try {
+            dataStore.toggleActivityCompletion(tripId, activityId)
+        } catch (e: Exception) {
+            showToast("Error updating activity")
+        }
+    }
+
     suspend fun deleteActivity(tripId: String, activityId: String) {
         try {
             dataStore.deleteActivity(tripId, activityId)

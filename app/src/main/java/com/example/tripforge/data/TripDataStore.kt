@@ -89,6 +89,16 @@ class TripDataStore(private val context: Context) {
         }
     }
 
+    suspend fun toggleActivityCompletion(tripId: String, activityId: String) {
+        updateTrip(tripId) { trip ->
+            trip.copy(itinerary = trip.itinerary.map { day ->
+                day.copy(activities = day.activities.map { activity ->
+                    if (activity.id == activityId) activity.copy(completed = !activity.completed) else activity
+                })
+            })
+        }
+    }
+
     suspend fun deleteActivity(tripId: String, activityId: String) {
         updateTrip(tripId) { trip ->
             trip.copy(itinerary = trip.itinerary.map { day ->
