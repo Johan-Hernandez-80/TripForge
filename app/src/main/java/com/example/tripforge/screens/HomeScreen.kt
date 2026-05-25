@@ -136,7 +136,7 @@ fun HomeHeader(user: User?, onNewTrip: () -> Unit, onViewAll: () -> Unit) {
     ) {
         Column {
             Text(
-                text = "Hello, $firstName ✈️",
+                text = "Hello, $firstName",
                 color = MaterialTheme.colorScheme.onPrimary,
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold
