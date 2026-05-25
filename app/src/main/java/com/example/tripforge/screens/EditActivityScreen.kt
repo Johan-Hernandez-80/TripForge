@@ -40,7 +40,6 @@ fun EditActivityScreen(
     var time by rememberSaveable { mutableStateOf(activity.time) }
     var description by rememberSaveable { mutableStateOf(activity.description) }
     var cost by rememberSaveable { mutableStateOf(activity.cost?.toString() ?: "") }
-    var isCompleted by rememberSaveable { mutableStateOf(activity.completed) }
 
     Column(
         modifier = Modifier
@@ -102,28 +101,6 @@ fun EditActivityScreen(
             label = "Estimated Cost (optional)"
         )
 
-        Card(
-            shape = RoundedCornerShape(12.dp),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    "Mark as Completed",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Switch(
-                    checked = isCompleted,
-                    onCheckedChange = { isCompleted = it }
-                )
-            }
-        }
-
         Spacer(modifier = Modifier.height(8.dp))
 
         Row(
@@ -151,7 +128,7 @@ fun EditActivityScreen(
                                 description = description,
                                 cost = cost.toIntOrNull(),
                                 date = date,
-                                completed = isCompleted
+                                completed = activity.completed
                             )
                             repository.editActivity(tripId, updatedActivity)
                             onSave()
